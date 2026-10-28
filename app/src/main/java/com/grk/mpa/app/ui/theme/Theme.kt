@@ -1,58 +1,51 @@
 package com.grk.mpa.app.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = MpaBlueDark,
+    onPrimary = Color(0xFF102B65),
+    primaryContainer = Color(0xFF20386D),
+    onPrimaryContainer = Color(0xFFDCE4FF),
+    secondary = MpaTealDark,
+    onSecondary = Color(0xFF003731),
+    secondaryContainer = Color(0xFF005047),
+    onSecondaryContainer = Color(0xFFB8F2E8),
+    background = MpaDarkBackground,
+    onBackground = MpaDarkOnBackground,
+    surface = MpaDarkSurface,
+    onSurface = MpaDarkOnBackground,
+    onSurfaceVariant = MpaDarkOnSurfaceVariant
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = MpaBlue,
     onPrimary = Color.White,
+    primaryContainer = Color(0xFFDCE4FF),
+    onPrimaryContainer = Color(0xFF001849),
+    secondary = MpaTeal,
     onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondaryContainer = Color(0xFFB8F2E8),
+    onSecondaryContainer = Color(0xFF00201C),
+    background = MpaBackground,
+    onBackground = MpaOnBackground,
+    surface = MpaSurface,
+    onSurface = MpaOnBackground,
+    onSurfaceVariant = MpaOnSurfaceVariant
 )
 
 @Composable
 fun MPAAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    // Keep MPA branding consistent instead of using device-specific dynamic colors.
+    val scheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    MaterialTheme(colorScheme = scheme, typography = Typography, content = content)
 }
