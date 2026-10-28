@@ -1,3 +1,22 @@
+# Existing Python/Kivy exclusions
 kivy_venv
 vtl_env
-__pycache__
+__pycache__/
+
+# Android / Gradle build output
+.gradle/
+**/build/
+
+# Android Studio local configuration
+.idea/
+.kotlin/
+local.properties
+
+# Local signing credentials and secrets
+*.jks
+*.keystore
+keystore.properties
+
+# Operating system files
+.DS_Store
+Thumbs.db
