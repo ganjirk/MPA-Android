@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.grk.mpa.app.ui.common.PlaceholderScreen
 import com.grk.mpa.app.ui.games.GamesScreen
 import com.grk.mpa.app.ui.home.HomeScreen
+import com.grk.mpa.app.ui.productivity.ProductivityScreen
 import com.grk.mpa.app.ui.utilities.UtilitiesScreen
 
 @Composable
@@ -26,8 +27,9 @@ fun MpaNavHost(
         }
         composable(Destination.GAMES.route) { GamesScreen() }
         composable(Destination.UTILITIES.route) { UtilitiesScreen() }
+        composable(Destination.PRODUCTIVITY.route) { ProductivityScreen() }
         Destination.sections
-            .filter { it != Destination.GAMES && it != Destination.UTILITIES }
+            .filter { it != Destination.GAMES && it != Destination.UTILITIES && it != Destination.PRODUCTIVITY }
             .forEach { destination ->
                 composable(destination.route) {
                     PlaceholderScreen(destination)
