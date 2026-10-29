@@ -17,8 +17,11 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 3 | `phase3/native-home-navigation` | Home screen and bottom navigation | Merged |
 | 4 | `phase4/core-logic-readme-ci` | Kotlin ports of legacy logic with unit tests, README, CI | In review |
 | 5 | `phase5/legacy-removal` | Remove the legacy Python/Kivy/Django files | In review |
+| 6 | `phase6/app-structure-navigation` | Split the UI into packages, Navigation Compose, string resources, Material icons | In review |
+| 7 | `phase7/games-utilities-screens` | Number Guess game, Length and Binary converters, ViewModels | In review |
 
-The Games, Utilities, Productivity and Account tabs are still placeholders.
+Games (Number Guess) and Utilities (Length and Binary converters) are implemented. The
+Productivity and Account tabs are still placeholders.
 
 ## Requirements
 
@@ -40,13 +43,21 @@ CI (`.github/workflows/android.yml`) runs the same three tasks on every pull req
 
 ```
 app/src/main/java/com/grk/mpa/app/
-  MainActivity.kt   Compose shell: home screen and bottom navigation
+  MainActivity.kt   Activity entry point only
   core/             Pure Kotlin logic with no Android dependencies
     LengthConverter.kt
     BinaryConverter.kt
     NumberGuessGame.kt
-  ui/theme/         Material 3 theme
-app/src/test/       JVM unit tests for core/
+    NumberFormatter.kt
+  ui/
+    MpaApp.kt       Scaffold and bottom navigation bar
+    navigation/     Destination enum, NavHost, icons
+    home/           Home screen
+    games/          Number Guess screen and ViewModel
+    utilities/      Length and Binary converter screens and ViewModels
+    common/         Shared composables (placeholder screen)
+    theme/          Material 3 theme
+app/src/test/       JVM unit tests
 docs/               Design notes and audits
 ```
 

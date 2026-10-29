@@ -1,3 +1,53 @@
 <resources>
     <string name="app_name">MPA Android</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_games">Games</string>
+    <string name="nav_utilities">Utilities</string>
+    <string name="nav_productivity">Productivity</string>
+    <string name="nav_account">Account</string>
+
+    <string name="desc_home">Your everyday digital companion</string>
+    <string name="desc_games">Play, learn, and take a quick break</string>
+    <string name="desc_utilities">Useful tools for everyday tasks</string>
+    <string name="desc_productivity">Keep your plans and tasks organised</string>
+    <string name="desc_account">Your profile and account settings</string>
+
+    <string name="feature_games">Play and unwind</string>
+    <string name="feature_utilities">Handy everyday tools</string>
+    <string name="feature_productivity">Tasks and reminders</string>
+    <string name="feature_account">Profile and settings</string>
+
+    <string name="home_brand">MPA</string>
+    <string name="home_headline">Everything you need,\nin one place.</string>
+    <string name="home_welcome">Welcome to your Main Portal Application.</string>
+    <string name="home_explore_title">Explore MPA</string>
+    <string name="home_explore_subtitle">Choose a section to get started.</string>
+
+    <string name="placeholder_coming_soon">This section will be added in a future phase.</string>
+    <string name="guess_title">Number Guess</string>
+    <string name="guess_instructions">I\'m thinking of a number from %1$d to %2$d. Can you guess it?</string>
+    <string name="guess_input_label">Your guess</string>
+    <string name="guess_submit">Guess</string>
+    <string name="guess_new_game">New game</string>
+    <string name="guess_invalid">Enter a whole number.</string>
+    <string name="guess_out_of_range">Enter a number between %1$d and %2$d.</string>
+    <string name="guess_too_low">Hint: try a higher number.</string>
+    <string name="guess_too_high">Hint: try a lower number.</string>
+    <string name="guess_correct">Correct! You got it.</string>
+    <string name="guess_attempts">Valid guesses so far: %1$d</string>
+
+    <string name="tool_length">Length</string>
+    <string name="tool_binary">Binary</string>
+    <string name="length_input_label">Value</string>
+    <string name="length_from">Convert from</string>
+    <string name="error_invalid_number">Enter a valid number.</string>
+    <string name="binary_mode_dec_to_bin">Decimal to binary</string>
+    <string name="binary_mode_bin_to_dec">Binary to decimal</string>
+    <string name="binary_input_decimal">Decimal number</string>
+    <string name="binary_input_binary">Binary number</string>
+    <string name="binary_result_binary">In binary</string>
+    <string name="binary_result_decimal">In decimal</string>
+    <string name="error_invalid_decimal">Enter a valid decimal number.</string>
+    <string name="error_invalid_binary">Use only 0 and 1, with an optional point.</string>
 </resources>
