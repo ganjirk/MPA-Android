@@ -25,4 +25,29 @@
     <string name="home_explore_subtitle">Choose a section to get started.</string>
 
     <string name="placeholder_coming_soon">This section will be added in a future phase.</string>
+    <string name="guess_title">Number Guess</string>
+    <string name="guess_instructions">I\'m thinking of a number from %1$d to %2$d. Can you guess it?</string>
+    <string name="guess_input_label">Your guess</string>
+    <string name="guess_submit">Guess</string>
+    <string name="guess_new_game">New game</string>
+    <string name="guess_invalid">Enter a whole number.</string>
+    <string name="guess_out_of_range">Enter a number between %1$d and %2$d.</string>
+    <string name="guess_too_low">Hint: try a higher number.</string>
+    <string name="guess_too_high">Hint: try a lower number.</string>
+    <string name="guess_correct">Correct! You got it.</string>
+    <string name="guess_attempts">Valid guesses so far: %1$d</string>
+
+    <string name="tool_length">Length</string>
+    <string name="tool_binary">Binary</string>
+    <string name="length_input_label">Value</string>
+    <string name="length_from">Convert from</string>
+    <string name="error_invalid_number">Enter a valid number.</string>
+    <string name="binary_mode_dec_to_bin">Decimal to binary</string>
+    <string name="binary_mode_bin_to_dec">Binary to decimal</string>
+    <string name="binary_input_decimal">Decimal number</string>
+    <string name="binary_input_binary">Binary number</string>
+    <string name="binary_result_binary">In binary</string>
+    <string name="binary_result_decimal">In decimal</string>
+    <string name="error_invalid_decimal">Enter a valid decimal number.</string>
+    <string name="error_invalid_binary">Use only 0 and 1, with an optional point.</string>
 </resources>
