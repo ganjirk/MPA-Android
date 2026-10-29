@@ -18,9 +18,10 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 4 | `phase4/core-logic-readme-ci` | Kotlin ports of legacy logic with unit tests, README, CI | In review |
 | 5 | `phase5/legacy-removal` | Remove the legacy Python/Kivy/Django files | In review |
 | 6 | `phase6/app-structure-navigation` | Split the UI into packages, Navigation Compose, string resources, Material icons | In review |
-| 7 | `phase7/games-utilities-screens` | Number Guess game, Length and Binary converters, ViewModels | In review |
+| 7 | `phase7/games-utilities-screens` | Number Guess game, Length and Binary converters, ViewModels | Merged |
+| 8 | `phase8/pong-game` | Two-player Pong on a Compose Canvas, ported from the Kivy game | In review |
 
-Games (Number Guess) and Utilities (Length and Binary converters) are implemented. The
+Games (Number Guess, Pong) and Utilities (Length and Binary converters) are implemented. The
 Productivity and Account tabs are still placeholders.
 
 ## Requirements
@@ -49,11 +50,12 @@ app/src/main/java/com/grk/mpa/app/
     BinaryConverter.kt
     NumberGuessGame.kt
     NumberFormatter.kt
+    PongGame.kt     Pong physics and the fixed-step clock
   ui/
     MpaApp.kt       Scaffold and bottom navigation bar
     navigation/     Destination enum, NavHost, icons
     home/           Home screen
-    games/          Number Guess screen and ViewModel
+    games/          Number Guess and Pong screens and ViewModels
     utilities/      Length and Binary converter screens and ViewModels
     common/         Shared composables (placeholder screen)
     theme/          Material 3 theme
@@ -69,8 +71,7 @@ the JVM.
 The old Python/Kivy and Django experiments (`HomeScreen`, `NumGuess`, `Pong`, `TodoApp`,
 `MyShop`, `LengthConversion` and the root-level Python files) were removed in phase 5.
 They remain in Git history (last present at commit `70ba929`). Number guess, length
-conversion and binary/decimal conversion were ported to `core/`. The Pong game logic has
-not been ported yet and is planned for a later phase.
+conversion and binary/decimal conversion were ported to `core/`. Pong was ported in phase 8.
 
 `static/` still holds four legacy images (`logo.jpg`, `circles.jpg`, `numbers.jpeg`,
 `pencils.jpg`). They are kept until someone confirms whether `logo.jpg` is an approved

@@ -1,5 +1,6 @@
 package com.grk.mpa.app.ui.games
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,11 +12,16 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,9 +31,34 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grk.mpa.app.R
 
+private enum class Game(@StringRes val titleRes: Int) {
+    NUMBER_GUESS(R.string.game_number_guess),
+    PONG(R.string.game_pong)
+}
+
 @Composable
 fun GamesScreen(modifier: Modifier = Modifier) {
-    NumberGuessScreen(modifier = modifier)
+    var selectedName by rememberSaveable { mutableStateOf(Game.NUMBER_GUESS.name) }
+    val selected = Game.valueOf(selectedName)
+
+    Column(modifier.fillMaxSize()) {
+        Row(
+            Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Game.entries.forEach { game ->
+                FilterChip(
+                    selected = game == selected,
+                    onClick = { selectedName = game.name },
+                    label = { Text(stringResource(game.titleRes)) }
+                )
+            }
+        }
+        when (selected) {
+            Game.NUMBER_GUESS -> NumberGuessScreen()
+            Game.PONG -> PongScreen()
+        }
+    }
 }
 
 @Composable
