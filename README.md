@@ -16,6 +16,7 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 2 | `phase2/native-android-skeleton` | Gradle project, Compose theme | Merged |
 | 3 | `phase3/native-home-navigation` | Home screen and bottom navigation | Merged |
 | 4 | `phase4/core-logic-readme-ci` | Kotlin ports of legacy logic with unit tests, README, CI | In review |
+| 5 | `phase5/legacy-removal` | Remove the legacy Python/Kivy/Django files | In review |
 
 The Games, Utilities, Productivity and Account tabs are still placeholders.
 
@@ -54,19 +55,12 @@ the JVM.
 
 ## Legacy code
 
-The `HomeScreen`, `NumGuess`, `Pong`, `TodoApp`, `MyShop` and `LengthConversion`
-folders, and the root-level Python files, are legacy. They are kept for reference
-until their removal is approved; see the file disposition table in the Phase 0 audit.
-The legacy logic that is worth keeping has been ported to `core/`.
+The old Python/Kivy and Django experiments (`HomeScreen`, `NumGuess`, `Pong`, `TodoApp`,
+`MyShop`, `LengthConversion` and the root-level Python files) were removed in phase 5.
+They remain in Git history (last present at commit `70ba929`). Number guess, length
+conversion and binary/decimal conversion were ported to `core/`. The Pong game logic has
+not been ported yet and is planned for a later phase.
 
-## Backend
-
-The existing MPA Django service remains the source of truth for accounts and
-persistent user data. No API integration exists yet. Before any authenticated feature is
-built, the Django authentication model and API contract must be audited, including
-per-user ownership checks (see section 6 of the Phase 0 audit).
-
-## Secrets
-
-Never commit signing keys or credentials. `*.jks`, `*.keystore`, `keystore.properties`
-and `local.properties` are git-ignored.
+`static/` still holds four legacy images (`logo.jpg`, `circles.jpg`, `numbers.jpeg`,
+`pencils.jpg`). They are kept until someone confirms whether `logo.jpg` is an approved
+MPA logo and whether any of them should become app assets.
