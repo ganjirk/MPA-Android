@@ -1,0 +1,16 @@
+<resources>
+    <string name="tasks_title">Tasks</string>
+    <string name="tasks_new_label">New task</string>
+    <string name="tasks_add">Add</string>
+    <string name="tasks_filter_all">All</string>
+    <string name="tasks_filter_active">Active</string>
+    <string name="tasks_filter_done">Done</string>
+    <string name="tasks_clear_completed">Clear done</string>
+    <string name="tasks_delete">Delete task</string>
+    <string name="tasks_empty">Nothing here yet. Add your first task above.</string>
+    <string name="tasks_loading">Loading…</string>
+    <plurals name="tasks_remaining">
+        <item quantity="one">%1$d task left</item>
+        <item quantity="other">%1$d tasks left</item>
+    </plurals>
+</resources>
