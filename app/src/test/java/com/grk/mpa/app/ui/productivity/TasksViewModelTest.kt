@@ -113,6 +113,19 @@ class TasksViewModelTest {
         assertEquals(initial, repo.snapshot)
     }
 
+
+    @Test
+    fun tasksAddedAfterAccountLinkingAreQueuedForUpload() {
+        val repo = FakeSyncRepository(TaskStoreSnapshot(emptyList(), linkedAccountId = 12))
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined)) { 200L }
+        vm.onNewTitleChange("New remote task")
+        vm.addTask()
+
+        assertEquals(1, vm.tasks.size)
+        assertEquals(com.grk.mpa.app.core.TaskSyncState.PENDING_CREATE, vm.tasks.single().syncState)
+        assertEquals(12L, repo.snapshot.linkedAccountId)
+    }
+
     @Test
     fun deletingLinkedTaskPersistsRemoteDeletionTombstone() {
         val linked = Task(7, "Linked", remoteId = 70, syncState = com.grk.mpa.app.core.TaskSyncState.SYNCED)
