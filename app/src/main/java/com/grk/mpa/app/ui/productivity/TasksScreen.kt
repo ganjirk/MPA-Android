@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.grk.mpa.app.R
 import com.grk.mpa.app.core.TaskFilter
+import com.grk.mpa.app.core.TaskSyncState
 import com.grk.mpa.app.data.DataStoreTaskRepository
 import com.grk.mpa.app.data.TaskSyncCoordinator
 import com.grk.mpa.app.data.api.MpaApiClient
@@ -207,6 +208,22 @@ fun TasksScreen(
             }
         }
 
+        if (viewModel.canMigrateLegacyTasks) {
+            Column(verticalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)) {
+                Text(
+                    text = stringResource(R.string.tasks_legacy_migration_explanation, viewModel.localOnlyTaskCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(
+                    onClick = viewModel::prepareSelectedLegacyTasksForUpload,
+                    enabled = viewModel.selectedLegacyTaskCount > 0
+                ) {
+                    Text(stringResource(R.string.tasks_legacy_migration_prepare, viewModel.selectedLegacyTaskCount))
+                }
+            }
+        }
+
         val visible = viewModel.visibleTasks
 
         if (visible.isEmpty()) {
@@ -232,6 +249,15 @@ fun TasksScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if (viewModel.canMigrateLegacyTasks &&
+                            task.remoteId == null && task.syncState == TaskSyncState.LOCAL_ONLY
+                        ) {
+                            Checkbox(
+                                checked = task.id in viewModel.selectedLegacyTaskIds,
+                                onCheckedChange = { viewModel.toggleLegacyTaskSelection(task.id) }
+                            )
+                        }
+
                         Checkbox(
                             checked = task.isDone,
                             onCheckedChange = { viewModel.toggle(task.id) }
