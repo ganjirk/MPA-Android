@@ -40,16 +40,54 @@ class MpaApiClient(
     override suspend fun account(accessToken: String): ApiResult<Account> =
         call("api/v1/account/", bearer = accessToken) { json.decodeFromString<Account>(it) }
 
+    override suspend fun tasks(accessToken: String): ApiResult<List<RemoteTask>> =
+        call("api/v1/tasks/", bearer = accessToken) { json.decodeFromString<List<RemoteTask>>(it) }
+
+    override suspend fun createTask(
+        accessToken: String,
+        request: CreateTaskRequest
+    ): ApiResult<RemoteTask> =
+        call(
+            "api/v1/tasks/",
+            method = "POST",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteTask>(it) }
+
+    override suspend fun updateTask(
+        accessToken: String,
+        id: Long,
+        request: UpdateTaskRequest
+    ): ApiResult<RemoteTask> {
+        require(id > 0) { "Task id must be positive" }
+        return call(
+            "api/v1/tasks/$id/",
+            method = "PATCH",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteTask>(it) }
+    }
+
+    override suspend fun deleteTask(accessToken: String, id: Long): ApiResult<Unit> {
+        require(id > 0) { "Task id must be positive" }
+        return call(
+            "api/v1/tasks/$id/",
+            method = "DELETE",
+            bearer = accessToken
+        ) { Unit }
+    }
+
     private suspend fun <T> call(
         path: String,
         body: String? = null,
         bearer: String? = null,
+        method: String = if (body != null) "POST" else "GET",
         parse: (String) -> T
     ): ApiResult<T> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
             connection = (URL(base + path).openConnection() as HttpURLConnection).apply {
-                requestMethod = if (body != null) "POST" else "GET"
+                requestMethod = method
                 connectTimeout = TIMEOUT_MILLIS
                 readTimeout = TIMEOUT_MILLIS
                 instanceFollowRedirects = false
