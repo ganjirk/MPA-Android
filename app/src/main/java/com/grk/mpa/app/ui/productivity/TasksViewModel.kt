@@ -14,6 +14,7 @@ import com.grk.mpa.app.data.SyncAwareTaskRepository
 import com.grk.mpa.app.data.TaskStoreSnapshot
 import com.grk.mpa.app.data.TaskSyncCoordinator
 import com.grk.mpa.app.data.TaskSyncResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -110,23 +111,29 @@ class TasksViewModel(
         syncStatus = TaskSyncUiStatus.SYNCING
         val previousSave = persistenceJob
         scope.launch {
-            previousSave?.join()
-            when (coordinator.sync()) {
-                is TaskSyncResult.Success -> {
-                    val syncRepository = repository as? SyncAwareTaskRepository
-                    if (syncRepository != null) {
-                        val snapshot = syncRepository.loadSnapshot()
-                        tasks = snapshot.tasks
-                        linkedAccountId = snapshot.linkedAccountId
-                        pendingDeleteRemoteIds.clear()
-                        pendingDeleteRemoteIds.addAll(snapshot.pendingDeleteRemoteIds)
+            try {
+                previousSave?.join()
+                when (coordinator.sync()) {
+                    is TaskSyncResult.Success -> {
+                        val syncRepository = repository as? SyncAwareTaskRepository
+                        if (syncRepository != null) {
+                            val snapshot = syncRepository.loadSnapshot()
+                            tasks = snapshot.tasks
+                            linkedAccountId = snapshot.linkedAccountId
+                            pendingDeleteRemoteIds.clear()
+                            pendingDeleteRemoteIds.addAll(snapshot.pendingDeleteRemoteIds)
+                        }
+                        syncStatus = TaskSyncUiStatus.SUCCESS
                     }
-                    syncStatus = TaskSyncUiStatus.SUCCESS
+                    TaskSyncResult.SignedOut -> syncStatus = TaskSyncUiStatus.SIGNED_OUT
+                    TaskSyncResult.Offline -> syncStatus = TaskSyncUiStatus.OFFLINE
+                    is TaskSyncResult.AccountMismatch -> syncStatus = TaskSyncUiStatus.ACCOUNT_MISMATCH
+                    TaskSyncResult.Failed -> syncStatus = TaskSyncUiStatus.FAILED
                 }
-                TaskSyncResult.SignedOut -> syncStatus = TaskSyncUiStatus.SIGNED_OUT
-                TaskSyncResult.Offline -> syncStatus = TaskSyncUiStatus.OFFLINE
-                is TaskSyncResult.AccountMismatch -> syncStatus = TaskSyncUiStatus.ACCOUNT_MISMATCH
-                TaskSyncResult.Failed -> syncStatus = TaskSyncUiStatus.FAILED
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                syncStatus = TaskSyncUiStatus.FAILED
             }
         }
     }
