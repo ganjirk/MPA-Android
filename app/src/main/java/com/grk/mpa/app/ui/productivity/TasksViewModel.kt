@@ -140,6 +140,7 @@ class TasksViewModel(
             .forEach(pendingDeleteRemoteIds::add)
 
         tasks = newTasks
+        val deletionSnapshot = pendingDeleteRemoteIds.toSet()
         val previousSave = persistenceJob
         persistenceJob = scope.launch {
             previousSave?.join()
@@ -149,7 +150,7 @@ class TasksViewModel(
                     TaskStoreSnapshot(
                         tasks = newTasks,
                         linkedAccountId = linkedAccountId,
-                        pendingDeleteRemoteIds = pendingDeleteRemoteIds.toSet()
+                        pendingDeleteRemoteIds = deletionSnapshot
                     )
                 )
             } else {
