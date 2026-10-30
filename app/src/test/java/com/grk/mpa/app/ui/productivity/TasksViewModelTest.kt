@@ -2,6 +2,7 @@ package com.grk.mpa.app.ui.productivity
 
 import com.grk.mpa.app.core.Task
 import com.grk.mpa.app.core.TaskFilter
+import com.grk.mpa.app.core.TaskSyncState
 import com.grk.mpa.app.data.TaskRepository
 import com.grk.mpa.app.data.SyncAwareTaskRepository
 import com.grk.mpa.app.data.TaskStoreSnapshot
@@ -145,6 +146,57 @@ class TasksViewModelTest {
         vm.delete(local.id)
         assertTrue(vm.tasks.isEmpty())
         assertTrue(repo.snapshot.pendingDeleteRemoteIds.isEmpty())
+    }
+
+    @Test
+    fun legacyTasksCannotBePreparedUntilStoreIsLinkedToAnAccount() {
+        val repo = FakeSyncRepository(TaskStoreSnapshot(listOf(Task(1, "Offline task"))))
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+
+        assertFalse(vm.canMigrateLegacyTasks)
+        vm.toggleLegacyTaskSelection(1)
+        vm.prepareSelectedLegacyTasksForUpload()
+
+        assertEquals(TaskSyncState.LOCAL_ONLY, vm.tasks.single().syncState)
+        assertEquals(emptySet<Long>(), vm.selectedLegacyTaskIds)
+    }
+
+    @Test
+    fun preparingMigrationQueuesOnlyExplicitlySelectedLocalTasks() {
+        val localOne = Task(1, "Old offline task")
+        val localTwo = Task(2, "Another offline task")
+        val linked = Task(3, "Already synced", remoteId = 30, syncState = TaskSyncState.SYNCED)
+        val repo = FakeSyncRepository(
+            TaskStoreSnapshot(listOf(localOne, localTwo, linked), linkedAccountId = 12)
+        )
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+
+        assertTrue(vm.canMigrateLegacyTasks)
+        assertEquals(2, vm.localOnlyTaskCount)
+        vm.toggleLegacyTaskSelection(localTwo.id)
+        vm.prepareSelectedLegacyTasksForUpload()
+
+        assertEquals(TaskSyncState.LOCAL_ONLY, vm.tasks.first { it.id == localOne.id }.syncState)
+        assertEquals(TaskSyncState.PENDING_CREATE, vm.tasks.first { it.id == localTwo.id }.syncState)
+        assertEquals(linked, vm.tasks.first { it.id == linked.id })
+        assertEquals(emptySet<Long>(), vm.selectedLegacyTaskIds)
+        assertEquals(TaskSyncState.PENDING_CREATE, repo.snapshot.tasks.first { it.id == localTwo.id }.syncState)
+        assertEquals(12L, repo.snapshot.linkedAccountId)
+    }
+
+    @Test
+    fun legacySelectionIsClearedWhenSelectedTaskIsDeleted() {
+        val repo = FakeSyncRepository(
+            TaskStoreSnapshot(listOf(Task(1, "Old offline task")), linkedAccountId = 12)
+        )
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+        vm.toggleLegacyTaskSelection(1)
+        assertEquals(setOf(1L), vm.selectedLegacyTaskIds)
+
+        vm.delete(1)
+
+        assertEquals(emptySet<Long>(), vm.selectedLegacyTaskIds)
+        assertTrue(vm.tasks.isEmpty())
     }
 
     @Test
