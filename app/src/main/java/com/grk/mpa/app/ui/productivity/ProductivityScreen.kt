@@ -20,10 +20,10 @@ import com.grk.mpa.app.ui.theme.MpaDimensions
 
 private enum class ProductivityTool(@StringRes val titleRes: Int) {
     TASKS(R.string.tool_tasks),
+    REMINDERS(R.string.tool_reminders),
     EXPENSES(R.string.tool_expenses)
 }
 
-/** The Productivity tab: a switcher between the to-do list and the Expense Tracker. */
 @Composable
 fun ProductivityScreen(modifier: Modifier = Modifier) {
     var selectedName by rememberSaveable { mutableStateOf(ProductivityTool.TASKS.name) }
@@ -44,6 +44,7 @@ fun ProductivityScreen(modifier: Modifier = Modifier) {
         }
         when (selected) {
             ProductivityTool.TASKS -> TasksScreen()
+            ProductivityTool.REMINDERS -> RemindersScreen()
             ProductivityTool.EXPENSES -> ExpensesScreen()
         }
     }
