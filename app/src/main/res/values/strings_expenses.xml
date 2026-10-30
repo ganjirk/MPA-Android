@@ -1,0 +1,49 @@
+<resources>
+    <string name="tool_tasks">Tasks</string>
+    <string name="tool_expenses">Expenses</string>
+
+    <string name="expenses_title">Expense Tracker</string>
+    <string name="expenses_device_only">Saved on this device only. It is not linked to your MPA website account.</string>
+    <string name="expenses_previous">Previous</string>
+    <string name="expenses_next">Next</string>
+    <string name="expenses_this_month">Back to this month</string>
+
+    <string name="expenses_spent_this_month">Spent this month</string>
+    <string name="expenses_spent_in">Spent in %1$s</string>
+    <string name="expenses_monthly_budget">Monthly budget</string>
+    <string name="expenses_not_set">Not set</string>
+    <string name="expenses_budget_remaining">Budget remaining</string>
+    <string name="expenses_over_budget">Over budget by</string>
+    <string name="expenses_budget_status">Budget status</string>
+    <string name="expenses_set_a_budget">Set a budget</string>
+
+    <string name="expenses_breakdown_title">Where it went</string>
+    <string name="expenses_breakdown_value">%1$s (%2$d%%)</string>
+
+    <string name="expenses_budget_label">Budget amount (₹)</string>
+    <string name="expenses_budget_save">Save budget</string>
+    <string name="expenses_budget_error">Enter an amount above zero with at most 2 decimals.</string>
+
+    <string name="expenses_form_add_title">Add expense</string>
+    <string name="expenses_form_edit_title">Edit expense</string>
+    <string name="expenses_amount_label">Amount (₹)</string>
+    <string name="expenses_description_label">What did you spend on?</string>
+    <string name="expenses_date_label">Date</string>
+    <string name="expenses_category_label">Category</string>
+    <string name="expenses_add">Add expense</string>
+    <string name="expenses_save_changes">Save changes</string>
+    <string name="expenses_cancel">Cancel</string>
+    <string name="expenses_ok">OK</string>
+    <string name="expenses_error_amount">Enter an amount above zero with at most 2 decimals.</string>
+    <string name="expenses_error_description">Enter a description.</string>
+    <string name="expenses_error_future">The date cannot be in the future.</string>
+
+    <string name="expenses_list_title">Expenses</string>
+    <string name="expenses_empty">No expenses in this month yet.</string>
+    <string name="expenses_edit">Edit</string>
+    <string name="expenses_delete">Delete expense</string>
+    <string name="expenses_delete_title">Delete this expense?</string>
+    <string name="expenses_delete_confirm">Delete</string>
+    <string name="expenses_export">Export CSV</string>
+    <string name="expenses_export_failed">Could not save the file.</string>
+</resources>
