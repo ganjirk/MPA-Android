@@ -5,7 +5,8 @@ import java.time.YearMonth
 /** Builds the same CSV the website exports for a month. */
 object ExpenseCsv {
     /** Lets Excel read non-English text correctly. */
-    private const val BOM = "﻿"
+    // Built from its number, because lint rejects the byte-order mark written out in source.
+    private val BOM = Char(0xFEFF).toString()
     private const val EOL = "\r\n"
     private val formulaStarts = setOf('=', '+', '-', '@', '\t', '\r')
 

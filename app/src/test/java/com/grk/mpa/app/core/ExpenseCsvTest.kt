@@ -21,7 +21,7 @@ class ExpenseCsvTest {
             Expense(1, 12050, ExpenseCategory.FOOD, "Lunch", LocalDate.of(2026, 10, 2)),
             Expense(3, 99900, ExpenseCategory.SHOPPING, "Other month", LocalDate.of(2026, 9, 30))
         )
-        val expected = "﻿" +
+        val expected = Char(0xFEFF).toString() +
             "Date,Description,Category,Amount (INR)\r\n" +
             "2026-10-02,Lunch,Food & dining,120.50\r\n" +
             "2026-10-05,\"Taxi, airport\",Transport,300.00\r\n" +
