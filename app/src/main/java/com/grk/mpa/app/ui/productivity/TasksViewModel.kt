@@ -15,6 +15,7 @@ import com.grk.mpa.app.data.TaskStoreSnapshot
 import com.grk.mpa.app.data.TaskSyncCoordinator
 import com.grk.mpa.app.data.TaskSyncResult
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +32,7 @@ class TasksViewModel(
     private val scope: CoroutineScope get() = coroutineScope ?: viewModelScope
     private var linkedAccountId: Long? = null
     private val pendingDeleteRemoteIds = mutableSetOf<Long>()
+    private var persistenceJob: Job? = null
 
     var tasks by mutableStateOf<List<Task>>(emptyList())
         private set
@@ -64,7 +66,9 @@ class TasksViewModel(
     }
 
     fun onNewTitleChange(text: String) {
-        newTitle = text.take(TaskOperations.MAX_TITLE_LENGTH)
+        if (syncStatus != TaskSyncUiStatus.SYNCING) {
+            newTitle = text.take(TaskOperations.MAX_TITLE_LENGTH)
+        }
     }
 
     fun onFilterChange(newFilter: TaskFilter) {
@@ -72,7 +76,7 @@ class TasksViewModel(
     }
 
     fun addTask() {
-        if (!canAdd) return
+        if (!canAdd || syncStatus == TaskSyncUiStatus.SYNCING) return
         val added = TaskOperations.add(tasks, newTitle, clock())
         val prepared = if (linkedAccountId != null && added.size > tasks.size) {
             added.mapIndexed { index, task ->
@@ -83,11 +87,17 @@ class TasksViewModel(
         newTitle = ""
     }
 
-    fun toggle(id: Long) = update(TaskOperations.toggle(tasks, id))
+    fun toggle(id: Long) {
+        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.toggle(tasks, id))
+    }
 
-    fun delete(id: Long) = update(TaskOperations.delete(tasks, id))
+    fun delete(id: Long) {
+        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.delete(tasks, id))
+    }
 
-    fun clearCompleted() = update(TaskOperations.clearCompleted(tasks))
+    fun clearCompleted() {
+        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.clearCompleted(tasks))
+    }
 
     /** Runs only after an explicit user action; local-only tasks are never uploaded. */
     fun syncTasks() {
@@ -96,8 +106,10 @@ class TasksViewModel(
             return
         }
         if (syncStatus == TaskSyncUiStatus.SYNCING) return
+        syncStatus = TaskSyncUiStatus.SYNCING
+        val previousSave = persistenceJob
         scope.launch {
-            syncStatus = TaskSyncUiStatus.SYNCING
+            previousSave?.join()
             when (coordinator.sync()) {
                 is TaskSyncResult.Success -> {
                     val syncRepository = repository as? SyncAwareTaskRepository
@@ -120,7 +132,7 @@ class TasksViewModel(
 
     /** Shows the change immediately and saves it in the background. */
     private fun update(newTasks: List<Task>) {
-        if (!isLoaded) return
+        if (!isLoaded || syncStatus == TaskSyncUiStatus.SYNCING) return
         val remainingIds = newTasks.mapTo(mutableSetOf()) { it.id }
         tasks.asSequence()
             .filter { it.id !in remainingIds }
@@ -128,7 +140,9 @@ class TasksViewModel(
             .forEach(pendingDeleteRemoteIds::add)
 
         tasks = newTasks
-        scope.launch {
+        val previousSave = persistenceJob
+        persistenceJob = scope.launch {
+            previousSave?.join()
             val syncRepository = repository as? SyncAwareTaskRepository
             if (syncRepository != null) {
                 syncRepository.saveSnapshot(
