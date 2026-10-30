@@ -3,6 +3,8 @@ package com.grk.mpa.app.ui.productivity
 import com.grk.mpa.app.core.Task
 import com.grk.mpa.app.core.TaskFilter
 import com.grk.mpa.app.data.TaskRepository
+import com.grk.mpa.app.data.SyncAwareTaskRepository
+import com.grk.mpa.app.data.TaskStoreSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
@@ -16,6 +18,21 @@ private class FakeRepository(var stored: List<Task> = emptyList()) : TaskReposit
     override suspend fun save(tasks: List<Task>) {
         saveCount++
         stored = tasks
+    }
+}
+
+ 
+private class FakeSyncRepository(var snapshot: TaskStoreSnapshot) : SyncAwareTaskRepository {
+    var saveCount = 0
+    override suspend fun load(): List<Task> = snapshot.tasks
+    override suspend fun save(tasks: List<Task>) {
+        snapshot = snapshot.copy(tasks = tasks)
+        saveCount++
+    }
+    override suspend fun loadSnapshot(): TaskStoreSnapshot = snapshot
+    override suspend fun saveSnapshot(snapshot: TaskStoreSnapshot) {
+        this.snapshot = snapshot
+        saveCount++
     }
 }
 
@@ -79,6 +96,42 @@ class TasksViewModelTest {
         assertEquals(listOf(1L), vm.visibleTasks.map { it.id })
         vm.onFilterChange(TaskFilter.DONE)
         assertEquals(listOf(2L), vm.visibleTasks.map { it.id })
+    }
+
+
+    @Test
+    fun loadsSyncMetadataAlongsideTasks() {
+        val initial = TaskStoreSnapshot(
+            tasks = listOf(Task(7, "Linked", remoteId = 70, syncState = com.grk.mpa.app.core.TaskSyncState.SYNCED)),
+            linkedAccountId = 12,
+            pendingDeleteRemoteIds = setOf(71)
+        )
+        val repo = FakeSyncRepository(initial)
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+        assertEquals(initial.tasks, vm.tasks)
+        assertTrue(vm.isLoaded)
+        assertEquals(initial, repo.snapshot)
+    }
+
+    @Test
+    fun deletingLinkedTaskPersistsRemoteDeletionTombstone() {
+        val linked = Task(7, "Linked", remoteId = 70, syncState = com.grk.mpa.app.core.TaskSyncState.SYNCED)
+        val repo = FakeSyncRepository(TaskStoreSnapshot(listOf(linked), linkedAccountId = 12))
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+        vm.delete(linked.id)
+        assertTrue(vm.tasks.isEmpty())
+        assertEquals(setOf(70L), repo.snapshot.pendingDeleteRemoteIds)
+        assertEquals(12L, repo.snapshot.linkedAccountId)
+    }
+
+    @Test
+    fun deletingDeviceOnlyTaskDoesNotCreateRemoteTombstone() {
+        val local = Task(8, "Local")
+        val repo = FakeSyncRepository(TaskStoreSnapshot(listOf(local)))
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+        vm.delete(local.id)
+        assertTrue(vm.tasks.isEmpty())
+        assertTrue(repo.snapshot.pendingDeleteRemoteIds.isEmpty())
     }
 
     @Test
