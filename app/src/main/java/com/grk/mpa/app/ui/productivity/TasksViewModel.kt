@@ -9,6 +9,8 @@ import com.grk.mpa.app.core.Task
 import com.grk.mpa.app.core.TaskFilter
 import com.grk.mpa.app.core.TaskOperations
 import com.grk.mpa.app.data.TaskRepository
+import com.grk.mpa.app.data.SyncAwareTaskRepository
+import com.grk.mpa.app.data.TaskStoreSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -21,6 +23,8 @@ class TasksViewModel(
     private val clock: () -> Long = System::currentTimeMillis
 ) : ViewModel() {
     private val scope: CoroutineScope get() = coroutineScope ?: viewModelScope
+    private var linkedAccountId: Long? = null
+    private val pendingDeleteRemoteIds = mutableSetOf<Long>()
 
     var tasks by mutableStateOf<List<Task>>(emptyList())
         private set
@@ -38,7 +42,15 @@ class TasksViewModel(
 
     init {
         scope.launch {
-            tasks = repository.load()
+            val syncRepository = repository as? SyncAwareTaskRepository
+            if (syncRepository != null) {
+                val snapshot = syncRepository.loadSnapshot()
+                tasks = snapshot.tasks
+                linkedAccountId = snapshot.linkedAccountId
+                pendingDeleteRemoteIds.addAll(snapshot.pendingDeleteRemoteIds)
+            } else {
+                tasks = repository.load()
+            }
             isLoaded = true
         }
     }
@@ -66,7 +78,26 @@ class TasksViewModel(
     /** Shows the change immediately and saves it in the background. */
     private fun update(newTasks: List<Task>) {
         if (!isLoaded) return
+        val remainingIds = newTasks.mapTo(mutableSetOf()) { it.id }
+        tasks.asSequence()
+            .filter { it.id !in remainingIds }
+            .mapNotNull { it.remoteId }
+            .forEach(pendingDeleteRemoteIds::add)
+
         tasks = newTasks
-        scope.launch { repository.save(newTasks) }
+        scope.launch {
+            val syncRepository = repository as? SyncAwareTaskRepository
+            if (syncRepository != null) {
+                syncRepository.saveSnapshot(
+                    TaskStoreSnapshot(
+                        tasks = newTasks,
+                        linkedAccountId = linkedAccountId,
+                        pendingDeleteRemoteIds = pendingDeleteRemoteIds.toSet()
+                    )
+                )
+            } else {
+                repository.save(newTasks)
+            }
+        }
     }
 }
