@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.grk.mpa.app.core.Task
 import com.grk.mpa.app.core.TaskFilter
 import com.grk.mpa.app.core.TaskOperations
+import com.grk.mpa.app.core.TaskSyncState
 import com.grk.mpa.app.data.TaskRepository
 import com.grk.mpa.app.data.SyncAwareTaskRepository
 import com.grk.mpa.app.data.TaskStoreSnapshot
@@ -72,7 +73,13 @@ class TasksViewModel(
 
     fun addTask() {
         if (!canAdd) return
-        update(TaskOperations.add(tasks, newTitle, clock()))
+        val added = TaskOperations.add(tasks, newTitle, clock())
+        val prepared = if (linkedAccountId != null && added.size > tasks.size) {
+            added.mapIndexed { index, task ->
+                if (index == added.lastIndex) task.copy(syncState = TaskSyncState.PENDING_CREATE) else task
+            }
+        } else added
+        update(prepared)
         newTitle = ""
     }
 
