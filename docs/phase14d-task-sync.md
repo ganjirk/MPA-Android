@@ -11,7 +11,7 @@ Synchronization is manual: the user taps **Sync** on the Tasks screen. There is 
 - Tasks created after the device has been linked to an account are marked `PENDING_CREATE` and uploaded on the next explicit sync. Each successful create is persisted immediately so a later failed create can be retried without duplicating earlier tasks.
 - Changes to a linked task's completion state are marked `PENDING_UPDATE` and sent with PATCH.
 - Deleting a linked task records a persistent deletion tombstone. It is cleared only after the API confirms deletion (or returns 404 because the task is already absent).
-- Device-only tasks remain on the device. An explicit legacy-task migration/selection flow is not part of this phase.
+- Device-only tasks remain on the device unless the user explicitly selects them after the store is linked to an MPA account. **Prepare selected tasks for sync** queues only those selected tasks; they are not uploaded until the user separately taps **Sync**. Unselected local-only tasks remain local.
 - If a different MPA account is signed in, sync is blocked. The app does not silently reassign server IDs or upload data to another account.
 - If the network fails, local tasks and pending changes remain stored for retry.
 
@@ -31,3 +31,5 @@ Run from the Android repository root:
 ```
 
 Lint is a separate check; an existing unrelated resource-lookup warning/error in the Reminders screen was observed during Phase 14D.1.
+
+The legacy migration flow should be verified manually with at least two old device-only tasks: select one, prepare it, tap Sync, confirm that only the selected task appears on the website, then repeat with another task. Do not treat a task as uploaded until the sync success message appears.
