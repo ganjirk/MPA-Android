@@ -31,3 +31,40 @@ data class Account(
     val displayName: String
         get() = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { username }
 }
+
+
+/** One task returned by the authenticated mobile Tasks API. */
+@Serializable
+data class RemoteTask(
+    val id: Long,
+    val text: String,
+    val notes: String = "",
+    val priority: String = "",
+    val completed: Boolean = false,
+    @SerialName("created_date") val createdDate: String,
+    @SerialName("due_date") val dueDate: String? = null,
+    @SerialName("completed_on") val completedOn: String? = null
+)
+
+/** Body for POST /api/v1/tasks/. Ownership and id are always assigned by the server. */
+@Serializable
+data class CreateTaskRequest(
+    val text: String,
+    val notes: String = "",
+    val priority: String = "",
+    val completed: Boolean = false,
+    @SerialName("due_date") val dueDate: String? = null
+)
+
+/**
+ * Body for PATCH /api/v1/tasks/{id}/.
+ * Null fields are omitted. Set dueDate to JsonNull explicitly to clear a due date.
+ */
+@Serializable
+data class UpdateTaskRequest(
+    val text: String? = null,
+    val notes: String? = null,
+    val priority: String? = null,
+    val completed: Boolean? = null,
+    @SerialName("due_date") val dueDate: kotlinx.serialization.json.JsonElement? = null
+)
