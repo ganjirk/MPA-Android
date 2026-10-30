@@ -171,8 +171,8 @@ class MpaApiClientTest {
         assertEquals("POST", lastMethod)
         assertEquals("/api/v1/tasks/", lastPath)
         assertEquals("Bearer access-2", lastAuth)
-        assertTrue(lastBody!!.contains("\\"text\\":\\"Write tests\\""))
-        assertTrue(lastBody!!.contains("\\"priority\\":\\"medium\\""))
+        assertTrue(lastBody!!.contains("\"text\":\"Write tests\""))
+        assertTrue(lastBody!!.contains("\"priority\":\"medium\""))
         assertTrue(!lastBody!!.contains("user"))
         assertTrue(!lastBody!!.contains("id"))
     }
@@ -197,9 +197,9 @@ class MpaApiClientTest {
         assertEquals("PATCH", lastMethod)
         assertEquals("/api/v1/tasks/18/", lastPath)
         assertEquals("Bearer access-3", lastAuth)
-        assertTrue(lastBody!!.contains("\\"completed\\":true"))
-        assertTrue(lastBody!!.contains("\\"due_date\\":null"))
-        assertTrue(!lastBody!!.contains("\\"text\\":"))
+        assertTrue(lastBody!!.contains("\"completed\":true"))
+        assertTrue(lastBody!!.contains("\"due_date\":null"))
+        assertTrue(!lastBody!!.contains("\"text\":"))
     }
 
     @Test
