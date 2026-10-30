@@ -90,21 +90,23 @@ class TaskSyncCoordinator(
         }
 
         // Only tasks explicitly marked after account linking are uploaded.
-        val tasksAfterCreates = snapshot.tasks.map { local ->
-            if (local.remoteId != null || local.syncState != TaskSyncState.PENDING_CREATE) {
-                local
-            } else {
-                when (val result = api.createTask(
-                    tokens.access,
-                    CreateTaskRequest(text = local.title, completed = local.isDone)
-                )) {
-                    is ApiResult.Success -> {
-                        createdCount++
-                        result.value.toLocalTask(local.id)
-                    }
-                    ApiResult.NetworkError -> return TaskSyncResult.Offline
-                    else -> return TaskSyncResult.Failed
+        val tasksAfterCreates = snapshot.tasks.toMutableList()
+        for (index in tasksAfterCreates.indices) {
+            val local = tasksAfterCreates[index]
+            if (local.remoteId != null || local.syncState != TaskSyncState.PENDING_CREATE) continue
+            when (val result = api.createTask(
+                tokens.access,
+                CreateTaskRequest(text = local.title, completed = local.isDone)
+            )) {
+                is ApiResult.Success -> {
+                    createdCount++
+                    tasksAfterCreates[index] = result.value.toLocalTask(local.id)
+                    // Persist each successful POST immediately so a later failure cannot duplicate it on retry.
+                    snapshot = snapshot.copy(tasks = tasksAfterCreates.toList())
+                    repository.saveSnapshot(snapshot)
                 }
+                ApiResult.NetworkError -> return TaskSyncResult.Offline
+                else -> return TaskSyncResult.Failed
             }
         }
 
