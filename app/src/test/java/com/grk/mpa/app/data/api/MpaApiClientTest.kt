@@ -129,6 +129,99 @@ class MpaApiClientTest {
         assertEquals(ApiResult.NetworkError, offline.login("u", "p"))
     }
 
+
+    @Test
+    fun tasksListUsesBearerTokenAndParsesServerFields() = runBlocking {
+        handler = {
+            it.reply(
+                200,
+                """[{"id":17,"text":"Prepare release","notes":"QA first","priority":"high","completed":false,"created_date":"2026-10-30T10:00:00Z","due_date":"2026-11-02","completed_on":null}]"""
+            )
+        }
+        val result = client().tasks("access-1")
+        val expected = RemoteTask(
+            id = 17,
+            text = "Prepare release",
+            notes = "QA first",
+            priority = "high",
+            completed = false,
+            createdDate = "2026-10-30T10:00:00Z",
+            dueDate = "2026-11-02",
+            completedOn = null
+        )
+        assertEquals(ApiResult.Success(listOf(expected)), result)
+        assertEquals("GET", lastMethod)
+        assertEquals("/api/v1/tasks/", lastPath)
+        assertEquals("Bearer access-1", lastAuth)
+    }
+
+    @Test
+    fun createTaskPostsOnlyTaskFieldsAndParsesCreatedTask() = runBlocking {
+        handler = {
+            it.reply(
+                201,
+                """{"id":18,"text":"Write tests","notes":"","priority":"medium","completed":false,"created_date":"2026-10-31T08:00:00Z","due_date":null,"completed_on":null}"""
+            )
+        }
+        val result = client().createTask(
+            "access-2",
+            CreateTaskRequest(text = "Write tests", priority = "medium")
+        )
+        assertTrue(result is ApiResult.Success)
+        assertEquals("POST", lastMethod)
+        assertEquals("/api/v1/tasks/", lastPath)
+        assertEquals("Bearer access-2", lastAuth)
+        assertTrue(lastBody!!.contains("\\"text\\":\\"Write tests\\""))
+        assertTrue(lastBody!!.contains("\\"priority\\":\\"medium\\""))
+        assertTrue(!lastBody!!.contains("user"))
+        assertTrue(!lastBody!!.contains("id"))
+    }
+
+    @Test
+    fun updateTaskUsesPatchAndCanExplicitlyClearDueDate() = runBlocking {
+        handler = {
+            it.reply(
+                200,
+                """{"id":18,"text":"Write tests","notes":"","priority":"","completed":true,"created_date":"2026-10-31T08:00:00Z","due_date":null,"completed_on":"2026-10-31T09:00:00Z"}"""
+            )
+        }
+        val result = client().updateTask(
+            "access-3",
+            18,
+            UpdateTaskRequest(
+                completed = true,
+                dueDate = kotlinx.serialization.json.JsonNull
+            )
+        )
+        assertTrue(result is ApiResult.Success)
+        assertEquals("PATCH", lastMethod)
+        assertEquals("/api/v1/tasks/18/", lastPath)
+        assertEquals("Bearer access-3", lastAuth)
+        assertTrue(lastBody!!.contains("\\"completed\\":true"))
+        assertTrue(lastBody!!.contains("\\"due_date\\":null"))
+        assertTrue(!lastBody!!.contains("\\"text\\":"))
+    }
+
+    @Test
+    fun deleteTaskUsesDeleteAndAcceptsNoContent() = runBlocking {
+        handler = { it.reply(204, "") }
+        assertEquals(ApiResult.Success(Unit), client().deleteTask("access-4", 19))
+        assertEquals("DELETE", lastMethod)
+        assertEquals("/api/v1/tasks/19/", lastPath)
+        assertEquals("Bearer access-4", lastAuth)
+    }
+
+    @Test
+    fun taskOperationsRejectNonPositiveIds() {
+        val api = client()
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { api.updateTask("token", 0, UpdateTaskRequest(completed = true)) }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { api.deleteTask("token", -1) }
+        }
+    }
+
     @Test
     fun plainHttpIsRefusedExceptForLoopback() {
         assertThrows(IllegalArgumentException::class.java) { MpaApiClient("http://example.com/") }
