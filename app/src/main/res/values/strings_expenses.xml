@@ -1,6 +1,4 @@
 <resources>
-    <string name="tool_tasks">Tasks</string>
-    <string name="tool_expenses">Expenses</string>
 
     <string name="expenses_title">Expense Tracker</string>
     <string name="expenses_device_only">Saved on this device only. It is not linked to your MPA website account.</string>
