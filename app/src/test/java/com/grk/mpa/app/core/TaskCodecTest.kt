@@ -29,10 +29,9 @@ class TaskCodecTest {
         assertEquals(tasks, TaskCodec.decode(encoded))
     }
 
-
     @Test
     fun legacyFourColumnRecordsRemainLocalOnly() {
-        val legacy = "42\\ttrue\\t1234\\tOld+task"
+        val legacy = "42\ttrue\t1234\tOld+task"
         assertEquals(
             listOf(Task(42, "Old task", true, 1234)),
             TaskCodec.decode(legacy)
@@ -52,11 +51,11 @@ class TaskCodecTest {
     @Test
     fun invalidRemoteSyncMetadataIsSkipped() {
         val valid = TaskCodec.encode(listOf(Task(1, "Keep", false, 1)))
-        val invalidWithoutRemoteId = "2\\tfalse\\t1\\tNo+remote\\t\\tSYNCED"
-        val invalidRemoteId = "3\\tfalse\\t1\\tBad+remote\\t0\\tSYNCED"
+        val invalidWithoutRemoteId = "2\tfalse\t1\tNo+remote\t\tSYNCED"
+        val invalidRemoteId = "3\tfalse\t1\tBad+remote\t0\tSYNCED"
         assertEquals(
             listOf(Task(1, "Keep", false, 1)),
-            TaskCodec.decode(listOf(invalidWithoutRemoteId, invalidRemoteId, valid).joinToString("\\n"))
+            TaskCodec.decode(listOf(invalidWithoutRemoteId, invalidRemoteId, valid).joinToString("\n"))
         )
     }
 
