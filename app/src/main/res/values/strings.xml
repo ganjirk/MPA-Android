@@ -48,6 +48,9 @@
     <string name="binary_result_decimal">In decimal</string>
     <string name="error_invalid_decimal">Enter a valid decimal number.</string>
     <string name="error_invalid_binary">Use only 0 and 1, with an optional point.</string>
+    <string name="tasks_legacy_migration_explanation">Select device-only tasks to queue for upload. Preparing them does not upload anything until you tap Sync.</string>
+    <string name="tasks_legacy_migration_prepare">Prepare selected tasks for sync (%1$d)</string>
+    <string name="tasks_legacy_migration_select">Select device-only task for upload</string>
     <string name="tasks_sync">Sync</string>
     <string name="tasks_syncing">Syncing…</string>
     <string name="tasks_sync_success">Tasks synced with your MPA account.</string>
