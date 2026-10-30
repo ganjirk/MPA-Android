@@ -30,7 +30,7 @@ jobs:
       - name: Summarise failures as annotations
         if: failure()
         run: |
-          grep -E '^e: |error:|FAILED|Execution failed|Could not (resolve|find)' build.log | head -30 | while IFS= read -r line; do echo "::error::${line}"; done
+          grep -E '^e: |[Ee]rror:|FAILED|Execution failed|Could not (resolve|find)|\[[A-Za-z]+\]$' build.log | head -60 | while IFS= read -r line; do echo "::error::${line}"; done
           grep -A6 'What went wrong' build.log | head -12 | while IFS= read -r line; do echo "::error::${line}"; done
 
       - name: Upload test and lint reports
