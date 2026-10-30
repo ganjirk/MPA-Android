@@ -19,18 +19,27 @@ enum class ExpenseCategory(val key: String, val label: String) {
     }
 }
 
+enum class ExpenseSyncState { LOCAL_ONLY, PENDING_CREATE, SYNCED, PENDING_UPDATE }
+
 data class Expense(
+    /** Stable device-side ID used by the UI and local storage. */
     val id: Long,
     val amountPaise: Long,
     val category: ExpenseCategory,
     val description: String,
-    val spentOn: LocalDate
+    val spentOn: LocalDate,
+    /** Server-side ID; deliberately separate from the device-side ID. */
+    val remoteId: Long? = null,
+    /** Old records default to LOCAL_ONLY and are never automatically uploaded. */
+    val syncState: ExpenseSyncState = ExpenseSyncState.LOCAL_ONLY
 )
 
-/** Everything the tracker stores: the expenses and one optional budget (in paise) per month. */
+/** Existing local data plus optional sync metadata. */
 data class ExpenseData(
     val expenses: List<Expense> = emptyList(),
-    val budgets: Map<YearMonth, Long> = emptyMap()
+    val budgets: Map<YearMonth, Long> = emptyMap(),
+    val linkedAccountId: Long? = null,
+    val pendingDeleteRemoteIds: Set<Long> = emptySet()
 )
 
 data class CategoryTotal(val category: ExpenseCategory, val totalPaise: Long, val percent: Int)
