@@ -18,11 +18,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+/** Current user-visible state of the manual task synchronization action. */
+enum class TaskSyncUiStatus { IDLE, SYNCING, SUCCESS, SIGNED_OUT, OFFLINE, ACCOUNT_MISMATCH, FAILED }
+
 /**
  * @param coroutineScope scope used for storage calls; null means [viewModelScope]. Tests pass their own.
  */
-enum class TaskSyncUiStatus { IDLE, SYNCING, SUCCESS, SIGNED_OUT, OFFLINE, ACCOUNT_MISMATCH, FAILED }
-
 class TasksViewModel(
     private val repository: TaskRepository,
     private val coroutineScope: CoroutineScope? = null,
