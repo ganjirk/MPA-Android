@@ -48,8 +48,10 @@ object TaskCodec {
                 ?: return@mapNotNull null
         } else TaskSyncState.LOCAL_ONLY
 
-        if (remoteId == null && syncState != TaskSyncState.LOCAL_ONLY) return@mapNotNull null
-        if (remoteId != null && remoteId <= 0L) return@mapNotNull null
+        if (remoteId == null && syncState !in setOf(TaskSyncState.LOCAL_ONLY, TaskSyncState.PENDING_CREATE)) return@mapNotNull null
+        if (remoteId != null && (remoteId <= 0L || syncState == TaskSyncState.LOCAL_ONLY || syncState == TaskSyncState.PENDING_CREATE)) {
+            return@mapNotNull null
+        }
         Task(id, title, done, created, remoteId, syncState)
     }.toList()
 }
