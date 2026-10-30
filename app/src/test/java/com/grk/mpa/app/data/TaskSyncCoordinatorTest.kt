@@ -34,6 +34,7 @@ private class SyncTestApi : MpaApi {
     var accountResult: ApiResult<Account> = ApiResult.Success(Account(5, "user"))
     var refreshResult: ApiResult<RefreshedTokens> = ApiResult.Success(RefreshedTokens("new-access"))
     var tasksResult: ApiResult<List<RemoteTask>> = ApiResult.Success(emptyList())
+    var createResult: ApiResult<RemoteTask> = ApiResult.Success(remoteTask(101, "Created on server"))
     val updateCalls = mutableListOf<Pair<Long, UpdateTaskRequest>>()
     val deleteCalls = mutableListOf<Long>()
     var createCalls = 0
@@ -53,7 +54,7 @@ private class SyncTestApi : MpaApi {
     }
     override suspend fun createTask(accessToken: String, request: CreateTaskRequest): ApiResult<RemoteTask> {
         createCalls++
-        return ApiResult.HttpError(501)
+        return createResult
     }
     override suspend fun updateTask(
         accessToken: String,
@@ -92,6 +93,34 @@ class TaskSyncCoordinatorTest {
         assertEquals(90L, repo.snapshot.tasks.last().remoteId)
         assertEquals(TaskSyncState.SYNCED, repo.snapshot.tasks.last().syncState)
         assertEquals(0, api.createCalls)
+    }
+
+
+    @Test
+    fun onlyNewTasksMarkedPendingCreateAreUploadedAfterLinking() = runBlocking {
+        val pendingCreate = Task(
+            id = 4,
+            title = "Created after linking",
+            createdAtMillis = 100,
+            syncState = TaskSyncState.PENDING_CREATE
+        )
+        val oldLocal = Task(id = 2, title = "Old offline task")
+        val repo = SyncTestTaskRepository(
+            TaskStoreSnapshot(listOf(oldLocal, pendingCreate), linkedAccountId = 5)
+        )
+        val api = SyncTestApi().apply {
+            tasksResult = ApiResult.Success(emptyList())
+            createResult = ApiResult.Success(remoteTask(101, "Created after linking"))
+        }
+
+        val result = TaskSyncCoordinator(api, SyncTestAuthStorage(), repo).sync()
+
+        assertEquals(TaskSyncResult.Success(imported = 0, updated = 0, deleted = 0, created = 1), result)
+        assertEquals(1, api.createCalls)
+        assertEquals(null, repo.snapshot.tasks.first { it.id == 2L }.remoteId)
+        val created = repo.snapshot.tasks.first { it.id == 4L }
+        assertEquals(101L, created.remoteId)
+        assertEquals(TaskSyncState.SYNCED, created.syncState)
     }
 
     @Test
