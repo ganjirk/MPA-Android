@@ -22,8 +22,9 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 8 | `phase8/pong-game` | Two-player Pong on a Compose Canvas, ported from the Kivy game | Merged |
 | 9 | `phase9/local-tasks` | Local to-do list on the Productivity tab, saved on the device with DataStore | Merged |
 | 10 | `phase10/account-login` | Sign in with the MPA website account (JWT), Account tab | In review |
+| 11 | `phase11/website-parity-units-guess` | Unit converter with all 8 website categories; Number Guess levels, chances and stats | In review |
 
-Games (Number Guess, Pong), Utilities (Length and Binary converters), Productivity (local
+Games (Number Guess with levels, Pong), Utilities (unit converter and Binary converter), Productivity (local
 to-do list) and Account (sign in with the MPA website account) are implemented. Tasks and scores
 are stored only on the device; reminders and syncing with the MPA backend are not built yet.
 
@@ -60,9 +61,9 @@ CI (`.github/workflows/android.yml`) runs the same three tasks on every pull req
 app/src/main/java/com/grk/mpa/app/
   MainActivity.kt   Activity entry point only
   core/             Pure Kotlin logic with no Android dependencies
-    LengthConverter.kt
+    UnitConversion.kt   The website's 8 unit categories and the converter
     BinaryConverter.kt
-    NumberGuessGame.kt
+    NumberGuessGame.kt, GuessLevel.kt, GuessStats.kt   Number Guess rules, levels and stats
     NumberFormatter.kt
     PongGame.kt     Pong physics and the fixed-step clock
     Task*.kt        Task model, list operations and the storage text format
@@ -75,7 +76,7 @@ app/src/main/java/com/grk/mpa/app/
     navigation/     Destination enum, NavHost, icons
     home/           Home screen
     games/          Number Guess and Pong screens and ViewModels
-    utilities/      Length and Binary converter screens and ViewModels
+    utilities/      Unit and Binary converter screens and ViewModels
     productivity/   Task list screen and ViewModel
     account/        Sign-in and account screen and ViewModel
     theme/          Material 3 theme

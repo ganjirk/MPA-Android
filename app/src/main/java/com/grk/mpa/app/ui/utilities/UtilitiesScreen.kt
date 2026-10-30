@@ -29,17 +29,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grk.mpa.app.R
-import com.grk.mpa.app.core.LengthUnit
-import com.grk.mpa.app.core.NumberFormatter
+import com.grk.mpa.app.core.UnitCategories
 
 private enum class UtilityTool(@StringRes val titleRes: Int) {
-    LENGTH(R.string.tool_length),
+    UNITS(R.string.tool_units),
     BINARY(R.string.tool_binary)
 }
 
 @Composable
 fun UtilitiesScreen(modifier: Modifier = Modifier) {
-    var selectedName by rememberSaveable { mutableStateOf(UtilityTool.LENGTH.name) }
+    var selectedName by rememberSaveable { mutableStateOf(UtilityTool.UNITS.name) }
     val selected = UtilityTool.valueOf(selectedName)
 
     Column(modifier.fillMaxSize()) {
@@ -56,7 +55,7 @@ fun UtilitiesScreen(modifier: Modifier = Modifier) {
             }
         }
         when (selected) {
-            UtilityTool.LENGTH -> LengthConverterScreen()
+            UtilityTool.UNITS -> UnitConverterScreen()
             UtilityTool.BINARY -> BinaryConverterScreen()
         }
     }
@@ -75,47 +74,49 @@ private fun ToolColumn(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun LengthConverterScreen(viewModel: LengthConverterViewModel = viewModel()) {
+fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
+    val category = viewModel.category
     ToolColumn {
-        OutlinedTextField(
-            value = viewModel.input,
-            onValueChange = viewModel::onInputChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.length_input_label)) },
-            singleLine = true,
-            isError = viewModel.isInvalid,
-            supportingText = if (viewModel.isInvalid) {
-                { Text(stringResource(R.string.error_invalid_number)) }
-            } else null,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-        )
-        Text(
-            stringResource(R.string.length_from),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         Row(
             Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LengthUnit.entries.forEach { unit ->
+            UnitCategories.all.forEach { item ->
                 FilterChip(
-                    selected = unit == viewModel.fromUnit,
-                    onClick = { viewModel.onUnitChange(unit) },
-                    label = { Text(unit.label) }
+                    selected = item == category,
+                    onClick = { viewModel.onCategoryChange(item) },
+                    label = { Text(item.label) }
                 )
             }
         }
-        val results = viewModel.results
-        if (results.isNotEmpty()) {
-            ResultCard {
-                results.forEach { (unit, converted) ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(unit.label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(NumberFormatter.format(converted), fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
+        Text(
+            stringResource(R.string.units_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        category.units.forEach { unit ->
+            val isSource = unit === viewModel.sourceUnit
+            OutlinedTextField(
+                value = viewModel.displayValue(unit),
+                onValueChange = { viewModel.onValueChange(unit, it) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(unit.label) },
+                singleLine = true,
+                isError = isSource && viewModel.isInvalid,
+                supportingText = if (isSource && viewModel.isInvalid) {
+                    { Text(stringResource(R.string.error_invalid_number)) }
+                } else null,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = if (category.allowsNegative) KeyboardType.Text else KeyboardType.Decimal
+                )
+            )
+        }
+        category.note?.let { note ->
+            Text(
+                note,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
