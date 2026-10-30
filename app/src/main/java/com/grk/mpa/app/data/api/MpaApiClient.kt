@@ -14,7 +14,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * Talks to the MPA website's JSON API with plain [HttpURLConnection].
+ * Talks to the MPA website's JSON API with OkHttp.
  *
  * - HTTPS only. Plain http is accepted just for loopback addresses, so tests and a local dev server work.
  * - Redirects are never followed, so a bearer token cannot be forwarded to another address.
