@@ -14,6 +14,8 @@ data class Task(
 enum class TaskSyncState {
     /** Created on this device; never upload automatically without explicit user consent. */
     LOCAL_ONLY,
+    /** Created after this device was linked to an account; safe to POST on explicit sync. */
+    PENDING_CREATE,
     /** Matches the server copy for the currently linked account. */
     SYNCED,
     /** A local edit must be sent to the server. */
