@@ -11,15 +11,20 @@ import com.grk.mpa.app.core.TaskOperations
 import com.grk.mpa.app.data.TaskRepository
 import com.grk.mpa.app.data.SyncAwareTaskRepository
 import com.grk.mpa.app.data.TaskStoreSnapshot
+import com.grk.mpa.app.data.TaskSyncCoordinator
+import com.grk.mpa.app.data.TaskSyncResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
  * @param coroutineScope scope used for storage calls; null means [viewModelScope]. Tests pass their own.
  */
+enum class TaskSyncUiStatus { IDLE, SYNCING, SUCCESS, SIGNED_OUT, OFFLINE, ACCOUNT_MISMATCH, FAILED }
+
 class TasksViewModel(
     private val repository: TaskRepository,
     private val coroutineScope: CoroutineScope? = null,
+    private val syncCoordinator: TaskSyncCoordinator? = null,
     private val clock: () -> Long = System::currentTimeMillis
 ) : ViewModel() {
     private val scope: CoroutineScope get() = coroutineScope ?: viewModelScope
@@ -33,6 +38,8 @@ class TasksViewModel(
     var newTitle by mutableStateOf("")
         private set
     var filter by mutableStateOf(TaskFilter.ALL)
+        private set
+    var syncStatus by mutableStateOf(TaskSyncUiStatus.IDLE)
         private set
 
     val visibleTasks: List<Task> get() = TaskOperations.filter(tasks, filter)
@@ -74,6 +81,35 @@ class TasksViewModel(
     fun delete(id: Long) = update(TaskOperations.delete(tasks, id))
 
     fun clearCompleted() = update(TaskOperations.clearCompleted(tasks))
+
+    /** Runs only after an explicit user action; local-only tasks are never uploaded. */
+    fun syncTasks() {
+        val coordinator = syncCoordinator ?: run {
+            syncStatus = TaskSyncUiStatus.FAILED
+            return
+        }
+        if (syncStatus == TaskSyncUiStatus.SYNCING) return
+        scope.launch {
+            syncStatus = TaskSyncUiStatus.SYNCING
+            when (coordinator.sync()) {
+                is TaskSyncResult.Success -> {
+                    val syncRepository = repository as? SyncAwareTaskRepository
+                    if (syncRepository != null) {
+                        val snapshot = syncRepository.loadSnapshot()
+                        tasks = snapshot.tasks
+                        linkedAccountId = snapshot.linkedAccountId
+                        pendingDeleteRemoteIds.clear()
+                        pendingDeleteRemoteIds.addAll(snapshot.pendingDeleteRemoteIds)
+                    }
+                    syncStatus = TaskSyncUiStatus.SUCCESS
+                }
+                TaskSyncResult.SignedOut -> syncStatus = TaskSyncUiStatus.SIGNED_OUT
+                TaskSyncResult.Offline -> syncStatus = TaskSyncUiStatus.OFFLINE
+                is TaskSyncResult.AccountMismatch -> syncStatus = TaskSyncUiStatus.ACCOUNT_MISMATCH
+                TaskSyncResult.Failed -> syncStatus = TaskSyncUiStatus.FAILED
+            }
+        }
+    }
 
     /** Shows the change immediately and saves it in the background. */
     private fun update(newTasks: List<Task>) {
