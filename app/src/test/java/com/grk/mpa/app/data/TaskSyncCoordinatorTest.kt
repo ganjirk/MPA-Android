@@ -35,6 +35,7 @@ private class SyncTestApi : MpaApi {
     var refreshResult: ApiResult<RefreshedTokens> = ApiResult.Success(RefreshedTokens("new-access"))
     var tasksResult: ApiResult<List<RemoteTask>> = ApiResult.Success(emptyList())
     var createResult: ApiResult<RemoteTask> = ApiResult.Success(remoteTask(101, "Created on server"))
+    val createResults = mutableListOf<ApiResult<RemoteTask>>()
     val updateCalls = mutableListOf<Pair<Long, UpdateTaskRequest>>()
     val deleteCalls = mutableListOf<Long>()
     var createCalls = 0
@@ -54,7 +55,7 @@ private class SyncTestApi : MpaApi {
     }
     override suspend fun createTask(accessToken: String, request: CreateTaskRequest): ApiResult<RemoteTask> {
         createCalls++
-        return createResult
+        return if (createResults.isNotEmpty()) createResults.removeAt(0) else createResult
     }
     override suspend fun updateTask(
         accessToken: String,
@@ -121,6 +122,33 @@ class TaskSyncCoordinatorTest {
         val created = repo.snapshot.tasks.first { it.id == 4L }
         assertEquals(101L, created.remoteId)
         assertEquals(TaskSyncState.SYNCED, created.syncState)
+    }
+
+
+    @Test
+    fun successfulCreateIsPersistedBeforeLaterCreateFailureSoRetryDoesNotDuplicateIt() = runBlocking {
+        val tasks = listOf(
+            Task(1, "First", syncState = TaskSyncState.PENDING_CREATE),
+            Task(2, "Second", syncState = TaskSyncState.PENDING_CREATE)
+        )
+        val repo = SyncTestTaskRepository(TaskStoreSnapshot(tasks, linkedAccountId = 5))
+        val api = SyncTestApi().apply {
+            createResults += ApiResult.Success(remoteTask(101, "First"))
+            createResults += ApiResult.HttpError(500)
+        }
+        val coordinator = TaskSyncCoordinator(api, SyncTestAuthStorage(), repo)
+
+        assertEquals(TaskSyncResult.Failed, coordinator.sync())
+        assertEquals(101L, repo.snapshot.tasks.first().remoteId)
+        assertEquals(TaskSyncState.PENDING_CREATE, repo.snapshot.tasks.last().syncState)
+
+        api.createResults += ApiResult.Success(remoteTask(102, "Second"))
+        assertEquals(
+            TaskSyncResult.Success(imported = 0, updated = 0, deleted = 0, created = 1),
+            coordinator.sync()
+        )
+        assertEquals(3, api.createCalls)
+        assertEquals(setOf(101L, 102L), repo.snapshot.tasks.mapNotNull { it.remoteId }.toSet())
     }
 
     @Test
