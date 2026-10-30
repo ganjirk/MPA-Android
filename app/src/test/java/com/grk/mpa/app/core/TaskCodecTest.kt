@@ -43,7 +43,8 @@ class TaskCodecTest {
         val tasks = listOf(
             Task(8, "Server task", false, 77, remoteId = 901, syncState = TaskSyncState.SYNCED),
             Task(9, "Edited task", true, 88, remoteId = 902, syncState = TaskSyncState.PENDING_UPDATE),
-            Task(10, "Device-only task", false, 99)
+            Task(10, "Device-only task", false, 99),
+            Task(11, "Pending create", false, 100, syncState = TaskSyncState.PENDING_CREATE)
         )
         assertEquals(tasks, TaskCodec.decode(TaskCodec.encode(tasks)))
     }
