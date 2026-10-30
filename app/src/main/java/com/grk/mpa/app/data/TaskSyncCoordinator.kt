@@ -33,8 +33,14 @@ class TaskSyncCoordinator(
     private val repository: SyncAwareTaskRepository
 ) {
     suspend fun sync(): TaskSyncResult {
-        val session = authenticatedAccount() ?: return TaskSyncResult.SignedOut
-        val (tokens, accountId) = session
+        val session = when (val resolved = authenticatedAccount()) {
+            is SessionResolution.Active -> resolved
+            SessionResolution.SignedOut -> return TaskSyncResult.SignedOut
+            SessionResolution.Offline -> return TaskSyncResult.Offline
+            SessionResolution.Failed -> return TaskSyncResult.Failed
+        }
+        val tokens = session.tokens
+        val accountId = session.accountId
         var snapshot = repository.loadSnapshot()
         val linkedAccountId = snapshot.linkedAccountId
         if (linkedAccountId != null && linkedAccountId != accountId) {
@@ -64,15 +70,16 @@ class TaskSyncCoordinator(
 
         var updatedCount = 0
         var deletedCount = 0
+        val deletedRemoteIds = mutableSetOf<Long>()
 
         // Tombstones are retained until the server confirms deletion.
         for (remoteId in snapshot.pendingDeleteRemoteIds.toList()) {
             when (val result = api.deleteTask(tokens.access, remoteId)) {
-                is ApiResult.Success, ApiResult.Unauthorized -> {
-                    // Unauthorized is not confirmation; don't clear a tombstone.
-                    if (result == ApiResult.Unauthorized) return TaskSyncResult.Failed
+                is ApiResult.Success, is ApiResult.HttpError -> {
+                    if (result is ApiResult.HttpError && result.code != 404) return TaskSyncResult.Failed
                     snapshot = snapshot.copy(pendingDeleteRemoteIds = snapshot.pendingDeleteRemoteIds - remoteId)
                     repository.saveSnapshot(snapshot)
+                    deletedRemoteIds.add(remoteId)
                     deletedCount++
                 }
                 ApiResult.NetworkError -> return TaskSyncResult.Offline
@@ -104,7 +111,7 @@ class TaskSyncCoordinator(
 
         val imported = remoteTasks.filter { remote ->
             tasksAfterUpdates.none { it.remoteId == remote.id } &&
-                remote.id !in snapshot.pendingDeleteRemoteIds
+                remote.id !in deletedRemoteIds
         }.mapIndexed { index, remote ->
             remote.toLocalTask(nextLocalId(tasksAfterUpdates) + index)
         }
@@ -113,10 +120,17 @@ class TaskSyncCoordinator(
         return TaskSyncResult.Success(imported = imported.size, updated = updatedCount, deleted = deletedCount)
     }
 
-    private suspend fun authenticatedAccount(): Pair<StoredTokens, Long>? {
-        var tokens = authStorage.load() ?: return null
+    private sealed interface SessionResolution {
+        data class Active(val tokens: StoredTokens, val accountId: Long) : SessionResolution
+        data object SignedOut : SessionResolution
+        data object Offline : SessionResolution
+        data object Failed : SessionResolution
+    }
+
+    private suspend fun authenticatedAccount(): SessionResolution {
+        var tokens = authStorage.load() ?: return SessionResolution.SignedOut
         when (val result = api.account(tokens.access)) {
-            is ApiResult.Success -> return tokens to result.value.id
+            is ApiResult.Success -> return SessionResolution.Active(tokens, result.value.id)
             ApiResult.Unauthorized -> {
                 when (val refreshed = api.refresh(tokens.refresh)) {
                     is ApiResult.Success -> {
@@ -126,22 +140,25 @@ class TaskSyncCoordinator(
                         )
                         authStorage.save(tokens)
                         return when (val account = api.account(tokens.access)) {
-                            is ApiResult.Success -> tokens to account.value.id
+                            is ApiResult.Success -> SessionResolution.Active(tokens, account.value.id)
                             ApiResult.Unauthorized -> {
                                 authStorage.clear()
-                                null
+                                SessionResolution.SignedOut
                             }
-                            else -> null
+                            ApiResult.NetworkError -> SessionResolution.Offline
+                            else -> SessionResolution.Failed
                         }
                     }
                     ApiResult.Unauthorized -> {
                         authStorage.clear()
-                        return null
+                        return SessionResolution.SignedOut
                     }
-                    else -> return null
+                    ApiResult.NetworkError -> return SessionResolution.Offline
+                    else -> return SessionResolution.Failed
                 }
             }
-            else -> return null
+            ApiResult.NetworkError -> return SessionResolution.Offline
+            else -> return SessionResolution.Failed
         }
     }
 
