@@ -45,7 +45,7 @@ private class SyncTestApi : MpaApi {
     override suspend fun refresh(refreshToken: String): ApiResult<RefreshedTokens> = refreshResult
     override suspend fun account(accessToken: String): ApiResult<Account> {
         accountCalls++
-        return accountResult
+        return if (accessToken == "new-access") ApiResult.Success(Account(5, "user")) else accountResult
     }
     override suspend fun tasks(accessToken: String): ApiResult<List<RemoteTask>> {
         taskCalls++
