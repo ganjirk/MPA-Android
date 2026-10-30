@@ -11,10 +11,10 @@ import java.net.URLEncoder
  * Malformed records are skipped rather than failing the whole list.
  */
 object TaskCodec {
-    private const val SEPARATOR = '\\t'
+    private const val SEPARATOR = '\t'
     private const val CHARSET = "UTF-8"
 
-    fun encode(tasks: List<Task>): String = tasks.joinToString("\\n") { task ->
+    fun encode(tasks: List<Task>): String = tasks.joinToString("\n") { task ->
         listOf(
             task.id.toString(),
             task.isDone.toString(),
@@ -40,8 +40,8 @@ object TaskCodec {
 
         // Four-column records predate sync support and remain device-local.
         val remoteId = if (parts.size == 6) {
-            parts[4].takeIf { it.isNotEmpty() }?.toLongOrNull()
-                ?: if (parts[4].isEmpty()) null else return@mapNotNull null
+            if (parts[4].isEmpty()) null else parts[4].toLongOrNull()
+                ?: return@mapNotNull null
         } else null
         val syncState = if (parts.size == 6) {
             runCatching { TaskSyncState.valueOf(parts[5]) }.getOrNull()
