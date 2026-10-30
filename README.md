@@ -15,16 +15,28 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 1 | `phase1/legacy-cleanup` | Remove broken KivyMD submodule reference | Merged |
 | 2 | `phase2/native-android-skeleton` | Gradle project, Compose theme | Merged |
 | 3 | `phase3/native-home-navigation` | Home screen and bottom navigation | Merged |
-| 4 | `phase4/core-logic-readme-ci` | Kotlin ports of legacy logic with unit tests, README, CI | In review |
-| 5 | `phase5/legacy-removal` | Remove the legacy Python/Kivy/Django files | In review |
-| 6 | `phase6/app-structure-navigation` | Split the UI into packages, Navigation Compose, string resources, Material icons | In review |
+| 4 | `phase4/core-logic-readme-ci` | Kotlin ports of legacy logic with unit tests, README, CI | Merged |
+| 5 | `phase5/legacy-removal` | Remove the legacy Python/Kivy/Django files | Merged |
+| 6 | `phase6/app-structure-navigation` | Split the UI into packages, Navigation Compose, string resources, Material icons | Merged |
 | 7 | `phase7/games-utilities-screens` | Number Guess game, Length and Binary converters, ViewModels | Merged |
-| 8 | `phase8/pong-game` | Two-player Pong on a Compose Canvas, ported from the Kivy game | In review |
-| 9 | `phase9/local-tasks` | Local to-do list on the Productivity tab, saved on the device with DataStore | In review |
+| 8 | `phase8/pong-game` | Two-player Pong on a Compose Canvas, ported from the Kivy game | Merged |
+| 9 | `phase9/local-tasks` | Local to-do list on the Productivity tab, saved on the device with DataStore | Merged |
+| 10 | `phase10/account-login` | Sign in with the MPA website account (JWT), Account tab | In review |
 
-Games (Number Guess, Pong), Utilities (Length and Binary converters) and Productivity (local
-to-do list) are implemented. The Account tab is still a placeholder. Tasks are stored only on
-the device; reminders and sync with the MPA backend are not built yet.
+Games (Number Guess, Pong), Utilities (Length and Binary converters), Productivity (local
+to-do list) and Account (sign in with the MPA website account) are implemented. Tasks and scores
+are stored only on the device; reminders and syncing with the MPA backend are not built yet.
+
+## Account and the MPA backend
+
+The app signs in against the MPA website's JSON API (`/api/v1/`, see `docs/android-api-phase-10a-audit.md`
+in the website repo): `POST auth/token/`, `POST auth/token/refresh/` and `GET account/`.
+
+- HTTPS only; redirects are not followed; nothing is logged.
+- The access and refresh tokens are encrypted with an Android Keystore key and kept out of backups.
+- Signing out forgets the tokens on the device. The server has no revoke endpoint yet.
+- Signing in uploads nothing. Local tasks are never imported or overwritten automatically.
+- Create account and Forgot password open the website.
 
 ## Requirements
 
@@ -54,7 +66,10 @@ app/src/main/java/com/grk/mpa/app/
     NumberFormatter.kt
     PongGame.kt     Pong physics and the fixed-step clock
     Task*.kt        Task model, list operations and the storage text format
-  data/             TaskRepository and its DataStore implementation
+  data/
+    api/            MpaApi, its HttpURLConnection client, models and results
+    auth/           Encrypted token storage and AuthRepository
+    TaskRepository.kt, DataStoreTaskRepository.kt   Local task storage
   ui/
     MpaApp.kt       Scaffold and bottom navigation bar
     navigation/     Destination enum, NavHost, icons
@@ -62,7 +77,7 @@ app/src/main/java/com/grk/mpa/app/
     games/          Number Guess and Pong screens and ViewModels
     utilities/      Length and Binary converter screens and ViewModels
     productivity/   Task list screen and ViewModel
-    common/         Shared composables (placeholder screen)
+    account/        Sign-in and account screen and ViewModel
     theme/          Material 3 theme
 app/src/test/       JVM unit tests
 docs/               Design notes and audits

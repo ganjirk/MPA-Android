@@ -24,7 +24,6 @@
     <string name="home_explore_title">Explore MPA</string>
     <string name="home_explore_subtitle">Choose a section to get started.</string>
 
-    <string name="placeholder_coming_soon">This section will be added in a future phase.</string>
     <string name="guess_title">Number Guess</string>
     <string name="guess_instructions">I\'m thinking of a number from %1$d to %2$d. Can you guess it?</string>
     <string name="guess_input_label">Your guess</string>

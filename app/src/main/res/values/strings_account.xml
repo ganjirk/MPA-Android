@@ -1,0 +1,28 @@
+<resources>
+    <string name="account_sign_in_title">Sign in</string>
+    <string name="account_sign_in_subtitle">Use your MPA website account.</string>
+    <string name="account_username">Username</string>
+    <string name="account_password">Password</string>
+    <string name="account_sign_in">Sign in</string>
+    <string name="account_create">Create account</string>
+    <string name="account_forgot_password">Forgot password?</string>
+    <string name="account_local_data_note">Your tasks, scores and settings stay on this device. Syncing them with your MPA account is not available yet, and nothing is uploaded when you sign in.</string>
+
+    <string name="account_error_invalid">Wrong username or password.</string>
+    <string name="account_error_rate_limited">Too many attempts. Wait a minute and try again.</string>
+    <string name="account_error_network">Can\'t reach MPA. Check your connection and try again.</string>
+    <string name="account_error_other">Something went wrong. Please try again.</string>
+
+    <string name="account_offline_title">Can\'t reach MPA</string>
+    <string name="account_offline_message">You are still signed in on this device, but the server could not be reached.</string>
+    <string name="account_retry">Try again</string>
+
+    <string name="account_username_format">\@%1$s</string>
+    <string name="account_email_verified">%1$s (verified)</string>
+    <string name="account_email_unverified">%1$s (not verified yet). Open the website to resend the verification email.</string>
+    <string name="account_manage_on_website">Manage account on the website</string>
+    <string name="account_sign_out">Sign out</string>
+    <string name="account_cancel">Cancel</string>
+    <string name="account_sign_out_confirm_title">Sign out?</string>
+    <string name="account_sign_out_confirm_message">You will be signed out on this device. Your local tasks and scores are kept.</string>
+</resources>
