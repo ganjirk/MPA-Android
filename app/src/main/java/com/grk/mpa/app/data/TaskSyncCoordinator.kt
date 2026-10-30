@@ -3,6 +3,7 @@ package com.grk.mpa.app.data
 import com.grk.mpa.app.core.Task
 import com.grk.mpa.app.core.TaskSyncState
 import com.grk.mpa.app.data.api.ApiResult
+import com.grk.mpa.app.data.api.CreateTaskRequest
 import com.grk.mpa.app.data.api.MpaApi
 import com.grk.mpa.app.data.api.RemoteTask
 import com.grk.mpa.app.data.api.UpdateTaskRequest
@@ -13,7 +14,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 
 sealed interface TaskSyncResult {
-    data class Success(val imported: Int, val updated: Int, val deleted: Int) : TaskSyncResult
+    data class Success(val imported: Int, val updated: Int, val deleted: Int, val created: Int = 0) : TaskSyncResult
     data object SignedOut : TaskSyncResult
     data object Offline : TaskSyncResult
     data object Failed : TaskSyncResult
@@ -70,6 +71,7 @@ class TaskSyncCoordinator(
 
         var updatedCount = 0
         var deletedCount = 0
+        var createdCount = 0
         val deletedRemoteIds = mutableSetOf<Long>()
 
         // Tombstones are retained until the server confirms deletion.
@@ -87,8 +89,27 @@ class TaskSyncCoordinator(
             }
         }
 
+        // Only tasks explicitly marked after account linking are uploaded.
+        val tasksAfterCreates = snapshot.tasks.map { local ->
+            if (local.remoteId != null || local.syncState != TaskSyncState.PENDING_CREATE) {
+                local
+            } else {
+                when (val result = api.createTask(
+                    tokens.access,
+                    CreateTaskRequest(text = local.title, completed = local.isDone)
+                )) {
+                    is ApiResult.Success -> {
+                        createdCount++
+                        result.value.toLocalTask(local.id)
+                    }
+                    ApiResult.NetworkError -> return TaskSyncResult.Offline
+                    else -> return TaskSyncResult.Failed
+                }
+            }
+        }
+
         val remoteById = remoteTasks.associateBy { it.id }
-        val tasksAfterUpdates = snapshot.tasks.map { local ->
+        val tasksAfterUpdates = tasksAfterCreates.map { local ->
             val remoteId = local.remoteId ?: return@map local
             val remote = remoteById[remoteId] ?: return@map local
             if (local.syncState == TaskSyncState.PENDING_UPDATE) {
@@ -117,7 +138,7 @@ class TaskSyncCoordinator(
         }
         snapshot = snapshot.copy(tasks = tasksAfterUpdates + imported)
         repository.saveSnapshot(snapshot)
-        return TaskSyncResult.Success(imported = imported.size, updated = updatedCount, deleted = deletedCount)
+        return TaskSyncResult.Success(imported = imported.size, updated = updatedCount, deleted = deletedCount, created = createdCount)
     }
 
     private sealed interface SessionResolution {
