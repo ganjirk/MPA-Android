@@ -1,9 +1,12 @@
 package com.grk.mpa.app.data.api
 
 import java.io.IOException
-import java.net.HttpURLConnection
 import java.net.URI
-import java.net.URL
+import java.util.concurrent.TimeUnit
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -22,6 +25,13 @@ class MpaApiClient(
     private val json: Json = Json { ignoreUnknownKeys = true }
 ) : MpaApi {
     private val base = baseUrl.trimEnd('/') + "/"
+    private val http = OkHttpClient.Builder()
+        .connectTimeout(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+        .readTimeout(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .retryOnConnectionFailure(false)
+        .build()
 
     init {
         require(isSecure(base)) { "The API must be reached over https" }
@@ -84,45 +94,37 @@ class MpaApiClient(
         method: String = if (body != null) "POST" else "GET",
         parse: (String) -> T
     ): ApiResult<T> = withContext(Dispatchers.IO) {
-        var connection: HttpURLConnection? = null
         try {
-            connection = (URL(base + path).openConnection() as HttpURLConnection).apply {
-                requestMethod = method
-                connectTimeout = TIMEOUT_MILLIS
-                readTimeout = TIMEOUT_MILLIS
-                instanceFollowRedirects = false
-                setRequestProperty("Accept", "application/json")
-                if (bearer != null) setRequestProperty("Authorization", "Bearer $bearer")
-                if (body != null) {
-                    doOutput = true
-                    setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                    outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            val requestBody = body?.toRequestBody(JSON_MEDIA_TYPE)
+            val builder = Request.Builder()
+                .url(base + path)
+                .header("Accept", "application/json")
+            if (bearer != null) builder.header("Authorization", "Bearer $bearer")
+            val request = builder.method(method, requestBody).build()
+
+            http.newCall(request).execute().use { response ->
+                val text = response.body?.string().orEmpty()
+                when {
+                    response.code in 200..299 -> try {
+                        ApiResult.Success(parse(text))
+                    } catch (e: SerializationException) {
+                        ApiResult.BadResponse
+                    } catch (e: IllegalArgumentException) {
+                        ApiResult.BadResponse
+                    }
+                    response.code == 401 -> ApiResult.Unauthorized
+                    response.code == 429 -> ApiResult.RateLimited
+                    else -> ApiResult.HttpError(response.code)
                 }
-            }
-            val code = connection.responseCode
-            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
-            val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
-            when {
-                code in 200..299 -> try {
-                    ApiResult.Success(parse(text))
-                } catch (e: SerializationException) {
-                    ApiResult.BadResponse
-                } catch (e: IllegalArgumentException) {
-                    ApiResult.BadResponse
-                }
-                code == 401 -> ApiResult.Unauthorized
-                code == 429 -> ApiResult.RateLimited
-                else -> ApiResult.HttpError(code)
             }
         } catch (e: IOException) {
             ApiResult.NetworkError
-        } finally {
-            connection?.disconnect()
         }
     }
 
     private companion object {
         const val TIMEOUT_MILLIS = 15_000
+        val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         val LOOPBACK_HOSTS = setOf("localhost", "127.0.0.1", "::1", "[::1]")
 
         fun isSecure(url: String): Boolean {
