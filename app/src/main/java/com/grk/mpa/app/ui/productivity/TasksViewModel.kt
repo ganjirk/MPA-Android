@@ -46,11 +46,18 @@ class TasksViewModel(
         private set
     var syncStatus by mutableStateOf(TaskSyncUiStatus.IDLE)
         private set
+    var selectedLegacyTaskIds by mutableStateOf<Set<Long>>(emptySet())
+        private set
 
     val visibleTasks: List<Task> get() = TaskOperations.filter(tasks, filter)
     val activeCount: Int get() = TaskOperations.activeCount(tasks)
     val hasCompleted: Boolean get() = tasks.any { it.isDone }
     val canAdd: Boolean get() = isLoaded && TaskOperations.normalizeTitle(newTitle) != null
+    val localOnlyTaskCount: Int get() = tasks.count { it.syncState == TaskSyncState.LOCAL_ONLY && it.remoteId == null }
+    val canMigrateLegacyTasks: Boolean
+        get() = isLoaded && linkedAccountId != null && localOnlyTaskCount > 0 &&
+            syncStatus != TaskSyncUiStatus.SYNCING
+    val selectedLegacyTaskCount: Int get() = selectedLegacyTaskIds.size
 
     init {
         scope.launch {
@@ -94,14 +101,47 @@ class TasksViewModel(
     }
 
     fun delete(id: Long) {
-        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.delete(tasks, id))
+        if (syncStatus != TaskSyncUiStatus.SYNCING) {
+            selectedLegacyTaskIds = selectedLegacyTaskIds - id
+            update(TaskOperations.delete(tasks, id))
+        }
     }
 
     fun clearCompleted() {
-        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.clearCompleted(tasks))
+        if (syncStatus != TaskSyncUiStatus.SYNCING) {
+            val removedIds = tasks.filter { it.isDone }.map { it.id }.toSet()
+            selectedLegacyTaskIds = selectedLegacyTaskIds - removedIds
+            update(TaskOperations.clearCompleted(tasks))
+        }
     }
 
-    /** Runs only after an explicit user action; local-only tasks are never uploaded. */
+    fun toggleLegacyTaskSelection(id: Long) {
+        if (!canMigrateLegacyTasks) return
+        val task = tasks.firstOrNull { it.id == id } ?: return
+        if (task.remoteId != null || task.syncState != TaskSyncState.LOCAL_ONLY) return
+        selectedLegacyTaskIds = if (id in selectedLegacyTaskIds) {
+            selectedLegacyTaskIds - id
+        } else {
+            selectedLegacyTaskIds + id
+        }
+    }
+
+    /** Explicitly queues only selected device-only tasks; upload still requires a separate Sync action. */
+    fun prepareSelectedLegacyTasksForUpload() {
+        if (!canMigrateLegacyTasks || selectedLegacyTaskIds.isEmpty()) return
+        val selected = selectedLegacyTaskIds
+        val prepared = tasks.map { task ->
+            if (task.id in selected && task.remoteId == null && task.syncState == TaskSyncState.LOCAL_ONLY) {
+                task.copy(syncState = TaskSyncState.PENDING_CREATE)
+            } else {
+                task
+            }
+        }
+        selectedLegacyTaskIds = emptySet()
+        update(prepared)
+    }
+
+    /** Runs only after an explicit user action; local-only tasks are never uploaded automatically. */
     fun syncTasks() {
         val coordinator = syncCoordinator ?: run {
             syncStatus = TaskSyncUiStatus.FAILED
@@ -122,6 +162,9 @@ class TasksViewModel(
                             linkedAccountId = snapshot.linkedAccountId
                             pendingDeleteRemoteIds.clear()
                             pendingDeleteRemoteIds.addAll(snapshot.pendingDeleteRemoteIds)
+                            selectedLegacyTaskIds = selectedLegacyTaskIds.filterTo(mutableSetOf()) { id ->
+                                snapshot.tasks.any { it.id == id && it.syncState == TaskSyncState.LOCAL_ONLY }
+                            }
                         }
                         syncStatus = TaskSyncUiStatus.SUCCESS
                     }
