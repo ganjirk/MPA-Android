@@ -98,6 +98,7 @@ fun LudoScreen(
     val state = viewModel.state
     var rolling by remember { mutableStateOf(false) }
     var spinFace by remember { mutableIntStateOf(0) }
+    var newGameStarted by remember { mutableStateOf(false) }
 
     // Dice animation, then the roll itself
     LaunchedEffect(rolling) {
@@ -133,23 +134,49 @@ fun LudoScreen(
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(MpaDimensions.itemSpacing)
     ) {
-        Text(
-            stringResource(R.string.ludo_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        SetupSection(viewModel, onNewGame = {
-            rolling = false
-            viewModel.newGame()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                stringResource(R.string.ludo_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Button(
+                onClick = {
+                    rolling = false
+                    viewModel.newGame()
+                    newGameStarted = true
+                },
+                enabled = viewModel.isLoaded
+            ) {
+                Text(stringResource(if (viewModel.isLoaded) R.string.ludo_new_game else R.string.ludo_loading))
+            }
+        }
+        StatusCard(viewModel, newGameStarted)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Box(Modifier.padding(8.dp)) {
+                LudoBoard(
+                    state = state,
+                    highlighted = if (viewModel.canPickToken) viewModel.legalTokens else emptyList(),
+                    onTokenClick = { seat, token ->
+                        newGameStarted = false
+                        viewModel.onTokenClick(seat, token)
+                    }
+                )
+            }
+        }
+        DiceRow(viewModel, rolling, spinFace, onRoll = {
+            newGameStarted = false
+            rolling = true
         })
-        StatusCard(viewModel)
-        LudoBoard(
-            state = state,
-            highlighted = if (viewModel.canPickToken) viewModel.legalTokens else emptyList(),
-            onTokenClick = { seat, token -> viewModel.onTokenClick(seat, token) }
-        )
-        DiceRow(viewModel, rolling, spinFace, onRoll = { rolling = true })
         if (viewModel.canPickToken) {
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
@@ -162,13 +189,28 @@ fun LudoScreen(
                 }
             }
         }
+        SetupSection(viewModel)
         HowToPlayCard()
     }
 }
 
 @Composable
-private fun SetupSection(viewModel: LudoViewModel, onNewGame: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)) {
+private fun SetupSection(viewModel: LudoViewModel) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+      Column(
+        Modifier.fillMaxWidth().padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+      ) {
+        Text(
+            stringResource(R.string.ludo_setup_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
         Text(
             stringResource(R.string.ludo_players),
             style = MaterialTheme.typography.titleSmall,
@@ -180,6 +222,7 @@ private fun SetupSection(viewModel: LudoViewModel, onNewGame: () -> Unit) {
                 FilterChip(
                     selected = viewModel.playerCount == count,
                     onClick = { viewModel.onPlayerCountChange(count) },
+                    enabled = viewModel.isLoaded,
                     label = { Text(count.toString()) }
                 )
             }
@@ -203,13 +246,14 @@ private fun SetupSection(viewModel: LudoViewModel, onNewGame: () -> Unit) {
                         FilterChip(
                             selected = viewModel.kinds[color] == kind,
                             onClick = { viewModel.onKindChange(color, kind) },
+                            enabled = viewModel.isLoaded,
                             label = { Text(stringResource(kindLabel(kind))) }
                         )
                     }
                 }
             }
         }
-        Button(onClick = onNewGame) { Text(stringResource(R.string.ludo_new_game)) }
+      }
     }
 }
 
@@ -217,11 +261,13 @@ private fun SetupSection(viewModel: LudoViewModel, onNewGame: () -> Unit) {
 private fun colorName(color: Int): String = stringResource(LUDO_COLOR_NAMES[color])
 
 @Composable
-private fun StatusCard(viewModel: LudoViewModel) {
+private fun StatusCard(viewModel: LudoViewModel, newGameStarted: Boolean) {
     val state = viewModel.state
     val who = colorName(state.seats[state.turn].color)
     val human = viewModel.isHumanTurn
     val hint = when {
+        newGameStarted -> stringResource(R.string.ludo_new_game_started)
+        !viewModel.isLoaded -> stringResource(R.string.ludo_loading_game)
         state.phase == LudoPhase.OVER -> stringResource(R.string.ludo_hint_over, colorName(state.seats[state.winner].color))
         state.phase == LudoPhase.ROLL ->
             if (human) stringResource(R.string.ludo_hint_roll_human, who) else stringResource(R.string.ludo_hint_roll_cpu, who)
@@ -230,7 +276,12 @@ private fun StatusCard(viewModel: LudoViewModel) {
             else stringResource(R.string.ludo_hint_moving, who)
         else -> stringResource(R.string.ludo_hint_cpu_choosing, who)
     }
-    val last = if (viewModel.restored) stringResource(R.string.ludo_welcome_back) else eventText(state)
+    val last = when {
+        !viewModel.isLoaded -> stringResource(R.string.ludo_loading_game)
+        newGameStarted -> stringResource(R.string.ludo_new_game_ready)
+        viewModel.restored -> stringResource(R.string.ludo_welcome_back)
+        else -> eventText(state)
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
