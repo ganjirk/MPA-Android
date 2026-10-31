@@ -95,6 +95,25 @@ class UnitConversionTest {
     }
 
     @Test
+    fun minimumsMatchWebsiteInputConstraints() {
+        fun minimum(category: UnitCategory, label: String) =
+            category.units.first { it.label == label }.minimum
+
+        assertEquals(-459.67, minimum(UnitCategories.temperature, "Fahrenheit")!!, 0.0)
+        assertEquals(-273.15, minimum(UnitCategories.temperature, "Celsius")!!, 0.0)
+        assertEquals(0.0, minimum(UnitCategories.temperature, "Kelvin")!!, 0.0)
+
+        listOf(UnitCategories.time, UnitCategories.area, UnitCategories.data).forEach { category ->
+            category.units.forEach { unit ->
+                assertEquals("${category.id}/${unit.label}", 0.0, unit.minimum!!, 0.0)
+            }
+        }
+        listOf(UnitCategories.length, UnitCategories.weight, UnitCategories.volume, UnitCategories.speed)
+            .flatMap { it.units }
+            .forEach { unit -> assertEquals(null, unit.minimum) }
+    }
+
+    @Test
     fun onlyTheDataCategoryHasANote() {
         assertEquals(listOf("data"), UnitCategories.all.filter { it.note != null }.map { it.id })
     }
