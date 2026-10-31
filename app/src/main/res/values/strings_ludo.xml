@@ -3,6 +3,8 @@
     <string name="ludo_players">Players</string>
     <string name="ludo_new_game">New game</string>
     <string name="ludo_board_description">Ludo board</string>
+    <string name="ludo_start_game">Start Game</string>
+    <string name="ludo_setup_hint">Choose the number of players and difficulty, then press Start Game.</string>
 
     <string name="ludo_color_red">Red</string>
     <string name="ludo_color_green">Green</string>

@@ -1,3 +1,4 @@
+
 package com.grk.mpa.app.ui.games
 
 import androidx.compose.runtime.getValue
@@ -14,12 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-/**
- * The game flow without any timing: the screen decides when to call [roll] and [autoMove] so that dice and
- * computer moves can be paced and animated.
- *
- * @param coroutineScope scope used for storage calls; null means [viewModelScope]. Tests pass their own.
- */
 class LudoViewModel(
     private val repository: LudoRepository,
     private val coroutineScope: CoroutineScope? = null,
@@ -30,16 +25,20 @@ class LudoViewModel(
     var playerCount by mutableStateOf(2)
         private set
 
-    /** Choice for each colour (index 0 red .. 3 blue). Only the colours in play are used. */
-    var kinds by mutableStateOf(listOf(LudoKind.HUMAN, LudoKind.CPU, LudoKind.CPU, LudoKind.CPU))
+    var kinds by mutableStateOf(
+        listOf(LudoKind.HUMAN, LudoKind.CPU, LudoKind.CPU, LudoKind.CPU)
+    )
         private set
 
     var state by mutableStateOf(newState())
         private set
+
     var isLoaded by mutableStateOf(false)
         private set
 
-    /** True when the game on screen was restored from the device, until the first move is made. */
+    var gameStarted by mutableStateOf(false)
+        private set
+
     var restored by mutableStateOf(false)
         private set
 
@@ -52,6 +51,7 @@ class LudoViewModel(
                     saved.seats.forEach { list[it.color] = it.kind }
                 }
                 restored = true
+                gameStarted = true
             }
             isLoaded = true
         }
@@ -62,57 +62,74 @@ class LudoViewModel(
         return Ludo.newGame(colours.map { kinds[it] })
     }
 
-    val isHumanTurn: Boolean get() = state.seats[state.turn].kind == LudoKind.HUMAN
-    val legalTokens: List<Int> get() = Ludo.legalTokens(state)
+    val isHumanTurn: Boolean
+        get() = state.seats[state.turn].kind == LudoKind.HUMAN
 
-    /** Humans can roll when it is their turn and the game is not over. */
-    val canRoll: Boolean get() = isLoaded && state.phase == LudoPhase.ROLL && isHumanTurn
+    val legalTokens: List<Int>
+        get() = Ludo.legalTokens(state)
 
-    /** Humans pick a token only when there is a real choice; a single legal move is made for them. */
-    val canPickToken: Boolean get() = isLoaded && state.phase == LudoPhase.MOVE && isHumanTurn && legalTokens.size > 1
+    val canRoll: Boolean
+        get() = gameStarted && isLoaded &&
+            state.phase == LudoPhase.ROLL && isHumanTurn
+
+    val canPickToken: Boolean
+        get() = gameStarted && isLoaded &&
+            state.phase == LudoPhase.MOVE && isHumanTurn &&
+            legalTokens.size > 1
 
     fun onPlayerCountChange(count: Int) {
-        if (!isLoaded || count !in 2..4) return
+        if (!isLoaded || gameStarted || count !in 2..4) return
         playerCount = count
     }
 
     fun onKindChange(color: Int, kind: LudoKind) {
-        if (!isLoaded || color !in 0..3) return
+        if (!isLoaded || gameStarted || color !in 0..3) return
         kinds = kinds.toMutableList().also { it[color] = kind }
     }
 
+    /** Return to setup without replacing the previously saved game. */
     fun newGame() {
         if (!isLoaded) return
+        gameStarted = false
+        restored = false
+    }
+
+    /** Start a fresh game using the settings selected in setup. */
+    fun startGame() {
+        if (!isLoaded || gameStarted) return
         state = newState()
+        gameStarted = true
         restored = false
         persist()
     }
 
-    /** Rolls for the player whose turn it is, humans and computer alike. */
     fun roll(value: Int = Ludo.rollValue(random)) {
-        if (!isLoaded || state.phase != LudoPhase.ROLL) return
+        if (!gameStarted || !isLoaded || state.phase != LudoPhase.ROLL) return
         apply(Ludo.rollDice(state, value))
     }
 
-    /** A human tapping one of their glowing tokens. */
     fun onTokenClick(seat: Int, token: Int) {
         if (!canPickToken || seat != state.turn) return
         apply(Ludo.moveToken(state, token))
     }
 
-    /**
-     * Makes the move nobody has to choose: the only legal move, or the computer's pick.
-     * Returns false when it is a human's decision (or there is nothing to move).
-     */
     fun autoMove(): Boolean {
-        if (!isLoaded || state.phase != LudoPhase.MOVE) return false
+        if (!gameStarted || !isLoaded || state.phase != LudoPhase.MOVE) {
+            return false
+        }
+
         val legal = legalTokens
         val token = when {
             legal.isEmpty() -> return false
             legal.size == 1 -> legal[0]
-            !isHumanTurn -> Ludo.chooseToken(state, state.seats[state.turn].kind, random)
+            !isHumanTurn -> Ludo.chooseToken(
+                state,
+                state.seats[state.turn].kind,
+                random
+            )
             else -> return false
         }
+
         apply(Ludo.moveToken(state, token))
         return true
     }
