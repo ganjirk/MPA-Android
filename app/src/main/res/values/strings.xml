@@ -49,6 +49,8 @@
     <string name="error_invalid_decimal">Enter a valid decimal number.</string>
     <string name="error_invalid_binary">Use only 0 and 1, with an optional point.</string>
     <string name="tool_reminders">Reminders</string>
+    <string name="tool_tasks">Tasks</string>
+    <string name="tool_expenses">Expenses</string>
     <string name="reminders_title">Reminders</string>
     <string name="reminder_title_label">Reminder title</string>
     <string name="reminder_datetime_label">Date and time</string>
