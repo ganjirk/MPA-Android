@@ -12,6 +12,41 @@ class TaskOperationsTest {
         Task(5, "Write report", isDone = false, createdAtMillis = 30)
     )
 
+
+    @Test
+    fun togglingSyncedTaskMarksItPendingUpdate() {
+        val original = Task(
+            id = 3,
+            title = "Remote",
+            remoteId = 71,
+            syncState = TaskSyncState.SYNCED
+        )
+        val toggled = TaskOperations.toggle(listOf(original), original.id).single()
+        assertEquals(true, toggled.isDone)
+        assertEquals(71L, toggled.remoteId)
+        assertEquals(TaskSyncState.PENDING_UPDATE, toggled.syncState)
+    }
+
+    @Test
+    fun togglingLocalTaskKeepsItLocalOnly() {
+        val original = Task(id = 4, title = "Local")
+        val toggled = TaskOperations.toggle(listOf(original), original.id).single()
+        assertNull(toggled.remoteId)
+        assertEquals(TaskSyncState.LOCAL_ONLY, toggled.syncState)
+    }
+
+    @Test
+    fun togglingAlreadyPendingTaskKeepsPendingState() {
+        val original = Task(
+            id = 5,
+            title = "Pending",
+            remoteId = 72,
+            syncState = TaskSyncState.PENDING_UPDATE
+        )
+        val toggled = TaskOperations.toggle(listOf(original), original.id).single()
+        assertEquals(TaskSyncState.PENDING_UPDATE, toggled.syncState)
+    }
+
     @Test
     fun normalizeTrimsAndCollapsesWhitespace() {
         assertEquals("Buy fresh milk", TaskOperations.normalizeTitle("  Buy   fresh\n milk  "))

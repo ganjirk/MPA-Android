@@ -15,7 +15,17 @@ object TaskOperations {
     }
 
     fun toggle(tasks: List<Task>, id: Long): List<Task> =
-        tasks.map { if (it.id == id) it.copy(isDone = !it.isDone) else it }
+        tasks.map { task ->
+            if (task.id != id) task
+            else task.copy(
+                isDone = !task.isDone,
+                syncState = if (task.remoteId != null && task.syncState == TaskSyncState.SYNCED) {
+                    TaskSyncState.PENDING_UPDATE
+                } else {
+                    task.syncState
+                }
+            )
+        }
 
     fun delete(tasks: List<Task>, id: Long): List<Task> = tasks.filterNot { it.id == id }
 

@@ -48,6 +48,13 @@
     <string name="binary_result_decimal">In decimal</string>
     <string name="error_invalid_decimal">Enter a valid decimal number.</string>
     <string name="error_invalid_binary">Use only 0 and 1, with an optional point.</string>
+    <string name="tasks_sync">Sync</string>
+    <string name="tasks_syncing">Syncing…</string>
+    <string name="tasks_sync_success">Tasks synced with your MPA account.</string>
+    <string name="tasks_sync_signed_out">Sign in to your MPA account to sync tasks.</string>
+    <string name="tasks_sync_offline">Could not reach MPA. Your local tasks are safe; try again when online.</string>
+    <string name="tasks_sync_account_mismatch">These tasks are linked to another MPA account. Sign in to that account to sync them.</string>
+    <string name="tasks_sync_failed">Task sync could not be completed. Your pending local changes are retained.</string>
     <string name="tool_reminders">Reminders</string>
     <string name="tool_tasks">Tasks</string>
     <string name="tool_expenses">Expenses</string>
