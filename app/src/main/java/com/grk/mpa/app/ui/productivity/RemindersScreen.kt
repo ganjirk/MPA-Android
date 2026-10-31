@@ -100,10 +100,11 @@ fun RemindersScreen(modifier: Modifier = Modifier) {
     val vm: RemindersViewModel = viewModel { RemindersViewModel(context) }
     var showCompleted by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val channelName = stringResource(R.string.reminder_channel_name)
     LaunchedEffect(Unit) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(
-            NotificationChannel(ReminderAlarm.CHANNEL_ID, context.getString(R.string.reminder_channel_name), NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel(ReminderAlarm.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_HIGH)
         )
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
