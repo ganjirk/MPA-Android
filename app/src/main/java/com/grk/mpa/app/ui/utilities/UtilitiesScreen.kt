@@ -1,6 +1,7 @@
 package com.grk.mpa.app.ui.utilities
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grk.mpa.app.R
+import com.grk.mpa.app.core.NumberFormatter
 import com.grk.mpa.app.core.UnitCategories
+import com.grk.mpa.app.core.UnitCategory
 
 private enum class UtilityTool(@StringRes val titleRes: Int) {
     UNITS(R.string.tool_units),
@@ -75,48 +78,90 @@ private fun ToolColumn(content: @Composable () -> Unit) {
 
 @Composable
 fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
-    val category = viewModel.category
+    // Store IDs as a saveable string so each card can independently retain its open/closed state.
+    var expandedIds by rememberSaveable { mutableStateOf("length") }
+    val expanded = expandedIds.split(',').filter { it.isNotBlank() }.toSet()
+
     ToolColumn {
-        Row(
-            Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            UnitCategories.all.forEach { item ->
-                FilterChip(
-                    selected = item == category,
-                    onClick = { viewModel.onCategoryChange(item) },
-                    label = { Text(item.label) }
-                )
-            }
-        }
         Text(
             stringResource(R.string.units_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        category.units.forEach { unit ->
-            val isSource = unit === viewModel.sourceUnit
-            OutlinedTextField(
-                value = viewModel.displayValue(unit),
-                onValueChange = { viewModel.onValueChange(unit, it) },
+        UnitCategories.all.forEach { category ->
+            val isExpanded = category.id in expanded
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(unit.label) },
-                singleLine = true,
-                isError = isSource && viewModel.isInvalid,
-                supportingText = if (isSource && viewModel.isInvalid) {
-                    { Text(stringResource(R.string.error_invalid_number)) }
-                } else null,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = if (category.allowsNegative) KeyboardType.Text else KeyboardType.Decimal
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 )
-            )
-        }
-        category.note?.let { note ->
-            Text(
-                note,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val next = if (isExpanded) expanded - category.id else expanded + category.id
+                            expandedIds = next.joinToString(",")
+                        }
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        category.label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        if (isExpanded) "⌃" else "⌄",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (isExpanded) {
+                    Column(
+                        Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        category.units.forEach { unit ->
+                            val isSource = viewModel.isSource(category, unit)
+                            val invalid = isSource && viewModel.isInvalid(category)
+                            val belowMinimum = isSource && viewModel.isBelowMinimum(category, unit)
+                            OutlinedTextField(
+                                value = viewModel.displayValue(category, unit),
+                                onValueChange = { viewModel.onValueChange(category, unit, it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(unit.label) },
+                                singleLine = true,
+                                isError = invalid,
+                                supportingText = when {
+                                    invalid -> ({ Text(stringResource(R.string.error_invalid_number)) })
+                                    belowMinimum -> ({
+                                        Text(stringResource(
+                                            R.string.units_minimum,
+                                            NumberFormatter.format(unit.minimum!!)
+                                        ))
+                                    })
+                                    else -> null
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = if (category.allowsNegative) {
+                                        KeyboardType.Text
+                                    } else {
+                                        KeyboardType.Decimal
+                                    }
+                                )
+                            )
+                        }
+                        category.note?.let { note ->
+                            Text(
+                                note,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
