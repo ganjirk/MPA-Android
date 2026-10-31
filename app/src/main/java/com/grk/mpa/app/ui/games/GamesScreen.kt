@@ -1,18 +1,26 @@
 package com.grk.mpa.app.ui.games
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -23,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,41 +47,150 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Card
 
-private enum class Game(@StringRes val titleRes: Int) {
-    NUMBER_GUESS(R.string.game_number_guess),
-    PONG(R.string.game_pong),
-    TIC_TAC_TOE(R.string.game_tic_tac_toe),
-    LUDO(R.string.game_ludo)
+private enum class Game(
+    @StringRes val titleRes: Int,
+    @StringRes val descriptionRes: Int,
+    val emoji: String
+) {
+    NUMBER_GUESS(R.string.game_number_guess, R.string.game_number_guess_description, "🎯"),
+    PONG(R.string.game_pong, R.string.game_pong_description, "🏓"),
+    TIC_TAC_TOE(R.string.game_tic_tac_toe, R.string.game_tic_tac_toe_description, "⭕"),
+    LUDO(R.string.game_ludo, R.string.game_ludo_description, "🎲")
 }
 
 @Composable
 fun GamesScreen(modifier: Modifier = Modifier) {
-    var selectedName by rememberSaveable { mutableStateOf(Game.NUMBER_GUESS.name) }
-    val selected = Game.valueOf(selectedName)
+    var selectedName by rememberSaveable { mutableStateOf<String?>(null) }
+    val selected = Game.entries.firstOrNull { it.name == selectedName }
 
-    Column(modifier.fillMaxSize()) {
-        Row(
-            Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+    if (selected == null) {
+        Column(
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = MpaDimensions.screenHorizontalPadding)
+                .padding(top = 20.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Game.entries.forEach { game ->
-                FilterChip(
-                    selected = game == selected,
-                    onClick = { selectedName = game.name },
-                    label = { Text(stringResource(game.titleRes)) }
+            Text(
+                stringResource(R.string.games_title),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                stringResource(R.string.games_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                GameTile(
+                    game = Game.NUMBER_GUESS,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedName = Game.NUMBER_GUESS.name }
+                )
+                GameTile(
+                    game = Game.PONG,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedName = Game.PONG.name }
+                )
+            }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                GameTile(
+                    game = Game.TIC_TAC_TOE,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedName = Game.TIC_TAC_TOE.name }
+                )
+                GameTile(
+                    game = Game.LUDO,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedName = Game.LUDO.name }
                 )
             }
         }
-        when (selected) {
-            Game.NUMBER_GUESS -> NumberGuessScreen()
-            Game.PONG -> PongScreen()
-            Game.TIC_TAC_TOE -> TicTacToeScreen()
-            Game.LUDO -> LudoScreen()
+    } else {
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MpaDimensions.screenHorizontalPadding, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(onClick = { selectedName = null }) {
+                    Text(stringResource(R.string.games_back))
+                }
+                Text(
+                    stringResource(selected.titleRes),
+                    modifier = Modifier.padding(start = 12.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            when (selected) {
+                Game.NUMBER_GUESS -> NumberGuessScreen()
+                Game.PONG -> PongScreen()
+                Game.TIC_TAC_TOE -> TicTacToeScreen()
+                Game.LUDO -> LudoScreen()
+            }
+        }
+    }
+}
+
+@Composable
+private fun GameTile(
+    game: Game,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 174.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                Modifier
+                    .size(52.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(game.emoji, style = MaterialTheme.typography.headlineSmall)
+            }
+            Text(
+                stringResource(game.titleRes),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                stringResource(game.descriptionRes),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                minLines = 2
+            )
+            Text(
+                stringResource(R.string.games_play_now),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
