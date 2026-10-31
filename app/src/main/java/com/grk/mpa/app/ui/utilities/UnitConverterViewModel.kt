@@ -15,6 +15,9 @@ class UnitConverterViewModel : ViewModel() {
     private val sourceUnits = mutableStateMapOf<String, ConversionUnit>()
     private val inputs = mutableStateMapOf<String, String>()
 
+    fun isSource(category: UnitCategory, unit: ConversionUnit): Boolean =
+        sourceUnits[category.id] === unit
+
     fun onValueChange(category: UnitCategory, unit: ConversionUnit, text: String) {
         sourceUnits[category.id] = unit
         inputs[category.id] = text
