@@ -68,3 +68,66 @@ data class UpdateTaskRequest(
     val completed: Boolean? = null,
     @SerialName("due_date") val dueDate: kotlinx.serialization.json.JsonElement? = null
 )
+
+/** One expense returned by the authenticated mobile Expense Tracker API. Amounts are decimal rupee strings. */
+@Serializable
+data class RemoteExpense(
+    val id: Long,
+    val amount: String,
+    val category: String,
+    val description: String,
+    @SerialName("spent_on") val spentOn: String,
+    @SerialName("created_at") val createdAt: String
+)
+
+/** Body for POST /api/v1/expenses/. User ownership and id are assigned by the server. */
+@Serializable
+data class CreateExpenseRequest(
+    val amount: String,
+    val category: String,
+    val description: String,
+    @SerialName("spent_on") val spentOn: String
+)
+
+/** Body for PATCH /api/v1/expenses/{id}/. Null fields are omitted. */
+@Serializable
+data class UpdateExpenseRequest(
+    val amount: String? = null,
+    val category: String? = null,
+    val description: String? = null,
+    @SerialName("spent_on") val spentOn: String? = null
+)
+
+/** One month budget returned by the authenticated mobile API. Month is the first day of the month. */
+@Serializable
+data class RemoteMonthlyBudget(
+    val id: Long,
+    val month: String,
+    val amount: String,
+    @SerialName("updated_at") val updatedAt: String
+)
+
+@Serializable
+data class SaveMonthlyBudgetRequest(
+    val month: String,
+    val amount: String
+)
+
+/** Monthly aggregate returned by GET /api/v1/expenses/summary/?month=YYYY-MM. */
+@Serializable
+data class RemoteExpenseSummary(
+    val month: String,
+    @SerialName("expense_count") val expenseCount: Int,
+    @SerialName("total_spent") val totalSpent: String,
+    @SerialName("budget_amount") val budgetAmount: String? = null,
+    @SerialName("remaining_budget") val remainingBudget: String? = null,
+    @SerialName("category_breakdown") val categoryBreakdown: List<RemoteExpenseCategoryTotal> = emptyList()
+)
+
+@Serializable
+data class RemoteExpenseCategoryTotal(
+    val category: String,
+    val label: String,
+    val amount: String
+)
+

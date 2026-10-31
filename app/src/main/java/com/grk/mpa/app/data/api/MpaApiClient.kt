@@ -87,6 +87,77 @@ class MpaApiClient(
         ) { Unit }
     }
 
+    override suspend fun expenses(accessToken: String, month: String?): ApiResult<List<RemoteExpense>> {
+        require(month == null || MONTH_PATTERN.matches(month)) { "Month must use YYYY-MM format" }
+        val query = month?.let { "?month=$it" }.orEmpty()
+        return call("api/v1/expenses/$query", bearer = accessToken) {
+            json.decodeFromString<List<RemoteExpense>>(it)
+        }
+    }
+
+    override suspend fun createExpense(
+        accessToken: String,
+        request: CreateExpenseRequest
+    ): ApiResult<RemoteExpense> =
+        call(
+            "api/v1/expenses/",
+            method = "POST",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteExpense>(it) }
+
+    override suspend fun updateExpense(
+        accessToken: String,
+        id: Long,
+        request: UpdateExpenseRequest
+    ): ApiResult<RemoteExpense> {
+        require(id > 0) { "Expense id must be positive" }
+        return call(
+            "api/v1/expenses/$id/",
+            method = "PATCH",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteExpense>(it) }
+    }
+
+    override suspend fun deleteExpense(accessToken: String, id: Long): ApiResult<Unit> {
+        require(id > 0) { "Expense id must be positive" }
+        return call("api/v1/expenses/$id/", method = "DELETE", bearer = accessToken) { Unit }
+    }
+
+    override suspend fun expenseSummary(
+        accessToken: String,
+        month: String
+    ): ApiResult<RemoteExpenseSummary> {
+        require(MONTH_PATTERN.matches(month)) { "Month must use YYYY-MM format" }
+        return call("api/v1/expenses/summary/?month=$month", bearer = accessToken) {
+            json.decodeFromString<RemoteExpenseSummary>(it)
+        }
+    }
+
+    override suspend fun budgets(accessToken: String): ApiResult<List<RemoteMonthlyBudget>> =
+        call("api/v1/budgets/", bearer = accessToken) {
+            json.decodeFromString<List<RemoteMonthlyBudget>>(it)
+        }
+
+    override suspend fun saveBudget(
+        accessToken: String,
+        request: SaveMonthlyBudgetRequest
+    ): ApiResult<RemoteMonthlyBudget> {
+        require(BUDGET_MONTH_PATTERN.matches(request.month)) {
+            "Budget month must use YYYY-MM-01 format"
+        }
+        require(request.month.endsWith("-01")) {
+            "Budget month must be the first day of the month"
+        }
+        return call(
+            "api/v1/budgets/",
+            method = "POST",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteMonthlyBudget>(it) }
+    }
+
     private suspend fun <T> call(
         path: String,
         body: String? = null,
@@ -124,6 +195,8 @@ class MpaApiClient(
 
     private companion object {
         const val TIMEOUT_MILLIS = 15_000
+        val MONTH_PATTERN = Regex("^\\d{4}-(0[1-9]|1[0-2])$")
+        val BUDGET_MONTH_PATTERN = Regex("^\\d{4}-(0[1-9]|1[0-2])-\\d{2}$")
         val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         val LOOPBACK_HOSTS = setOf("localhost", "127.0.0.1", "::1", "[::1]")
 
