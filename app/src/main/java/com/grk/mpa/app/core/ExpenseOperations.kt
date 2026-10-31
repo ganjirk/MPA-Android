@@ -34,14 +34,34 @@ object ExpenseOperations {
         val description = normalizeDescription(rawDescription)
         if (description == null || amountPaise !in 1..Money.MAX_PAISE) return data
         return data.copy(
-            expenses = data.expenses.map {
-                if (it.id == id) Expense(id, amountPaise, category, description, spentOn) else it
+            expenses = data.expenses.map { expense ->
+                if (expense.id != id) expense
+                else {
+                    val nextState = when (expense.syncState) {
+                        ExpenseSyncState.LOCAL_ONLY -> ExpenseSyncState.LOCAL_ONLY
+                        ExpenseSyncState.PENDING_CREATE -> ExpenseSyncState.PENDING_CREATE
+                        ExpenseSyncState.SYNCED, ExpenseSyncState.PENDING_UPDATE -> ExpenseSyncState.PENDING_UPDATE
+                    }
+                    expense.copy(
+                        amountPaise = amountPaise,
+                        category = category,
+                        description = description,
+                        spentOn = spentOn,
+                        syncState = nextState
+                    )
+                }
             }
         )
     }
 
-    fun delete(data: ExpenseData, id: Long): ExpenseData =
-        data.copy(expenses = data.expenses.filterNot { it.id == id })
+    fun delete(data: ExpenseData, id: Long): ExpenseData {
+        val target = data.expenses.firstOrNull { it.id == id } ?: return data
+        val remaining = data.expenses.filterNot { it.id == id }
+        val tombstones = if (target.remoteId != null &&
+            target.syncState in setOf(ExpenseSyncState.SYNCED, ExpenseSyncState.PENDING_UPDATE)
+        ) data.pendingDeleteRemoteIds + target.remoteId else data.pendingDeleteRemoteIds
+        return data.copy(expenses = remaining, pendingDeleteRemoteIds = tombstones)
+    }
 
     /** Expenses in [month], newest first (ties: most recently added first), as on the website. */
     fun inMonth(expenses: List<Expense>, month: YearMonth): List<Expense> =

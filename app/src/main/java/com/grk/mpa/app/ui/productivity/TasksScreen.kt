@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,10 +43,20 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.grk.mpa.app.R
 import com.grk.mpa.app.core.TaskFilter
 import com.grk.mpa.app.data.DataStoreTaskRepository
+import com.grk.mpa.app.data.TaskSyncCoordinator
+import com.grk.mpa.app.data.api.MpaApiClient
+import com.grk.mpa.app.data.auth.EncryptedAuthStorage
 
 private val tasksViewModelFactory = viewModelFactory {
     initializer {
-        TasksViewModel(DataStoreTaskRepository(checkNotNull(this[APPLICATION_KEY])))
+        val app = checkNotNull(this[APPLICATION_KEY])
+        val repository = DataStoreTaskRepository(app)
+        val coordinator = TaskSyncCoordinator(
+            api = MpaApiClient(),
+            authStorage = EncryptedAuthStorage(app),
+            repository = repository
+        )
+        TasksViewModel(repository, syncCoordinator = coordinator)
     }
 }
 
@@ -61,12 +72,45 @@ fun TasksScreen(
 			.padding(top = MpaDimensions.screenTopPadding),
 	verticalArrangement = Arrangement.spacedBy(MpaDimensions.itemSpacing)
     ) {
-        Text(
-            text = stringResource(R.string.tasks_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+        ) {
+            Text(
+                text = stringResource(R.string.tasks_title),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            OutlinedButton(
+                onClick = viewModel::syncTasks,
+                enabled = viewModel.isLoaded && viewModel.syncStatus != TaskSyncUiStatus.SYNCING
+            ) {
+                Text(
+                    stringResource(
+                        if (viewModel.syncStatus == TaskSyncUiStatus.SYNCING) R.string.tasks_syncing
+                        else R.string.tasks_sync
+                    )
+                )
+            }
+        }
+        val syncMessageRes = when (viewModel.syncStatus) {
+            TaskSyncUiStatus.IDLE, TaskSyncUiStatus.SYNCING -> null
+            TaskSyncUiStatus.SUCCESS -> R.string.tasks_sync_success
+            TaskSyncUiStatus.SIGNED_OUT -> R.string.tasks_sync_signed_out
+            TaskSyncUiStatus.OFFLINE -> R.string.tasks_sync_offline
+            TaskSyncUiStatus.ACCOUNT_MISMATCH -> R.string.tasks_sync_account_mismatch
+            TaskSyncUiStatus.FAILED -> R.string.tasks_sync_failed
+        }
+        if (syncMessageRes != null) {
+            Text(
+                text = stringResource(syncMessageRes),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         // Stack the task field and Add button when horizontal space is limited.
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
