@@ -1,50 +1,45 @@
 package com.grk.mpa.app.ui.utilities
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import com.grk.mpa.app.core.ConversionUnit
 import com.grk.mpa.app.core.NumberFormatter
-import com.grk.mpa.app.core.UnitCategories
 import com.grk.mpa.app.core.UnitCategory
 import com.grk.mpa.app.core.UnitConverter
 
 /**
- * Like the website: every unit of the chosen category has its own field. Typing in one field
- * converts into all the others.
+ * Keeps independent input state for every converter card. Typing in any unit field updates
+ * the remaining fields in that category without clearing values in another category.
  */
 class UnitConverterViewModel : ViewModel() {
-    var category by mutableStateOf(UnitCategories.all.first())
-        private set
+    private val sourceUnits = mutableStateMapOf<String, ConversionUnit>()
+    private val inputs = mutableStateMapOf<String, String>()
 
-    /** The unit the user last typed in, or null before they have typed anything. */
-    var sourceUnit by mutableStateOf<ConversionUnit?>(null)
-        private set
-    var input by mutableStateOf("")
-        private set
-
-    private val parsedValue: Double?
-        get() = input.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
-
-    val isInvalid: Boolean get() = sourceUnit != null && input.isNotBlank() && parsedValue == null
-
-    fun onCategoryChange(newCategory: UnitCategory) {
-        category = newCategory
-        sourceUnit = null
-        input = ""
+    fun onValueChange(category: UnitCategory, unit: ConversionUnit, text: String) {
+        sourceUnits[category.id] = unit
+        inputs[category.id] = text
     }
 
-    fun onValueChange(unit: ConversionUnit, text: String) {
-        sourceUnit = unit
-        input = text
-    }
-
-    /** What to show in the field of [unit]: the typed text in the source field, the conversion elsewhere. */
-    fun displayValue(unit: ConversionUnit): String {
-        val source = sourceUnit ?: return ""
+    fun displayValue(category: UnitCategory, unit: ConversionUnit): String {
+        val source = sourceUnits[category.id] ?: return ""
+        val input = inputs[category.id].orEmpty()
         if (unit === source) return input
-        val value = parsedValue ?: return ""
+        val value = input.trim().replace(',', '.').toDoubleOrNull()
+            ?.takeIf { it.isFinite() } ?: return ""
         return NumberFormatter.format(UnitConverter.convert(value, source, unit))
+    }
+
+    fun isInvalid(category: UnitCategory): Boolean {
+        val input = inputs[category.id].orEmpty()
+        return input.isNotBlank() && input.trim().replace(',', '.').toDoubleOrNull()
+            ?.isFinite() != true
+    }
+
+    fun isBelowMinimum(category: UnitCategory, unit: ConversionUnit): Boolean {
+        if (sourceUnits[category.id] !== unit) return false
+        val minimum = unit.minimum ?: return false
+        val value = inputs[category.id].orEmpty().trim().replace(',', '.').toDoubleOrNull()
+            ?.takeIf { it.isFinite() } ?: return false
+        return value < minimum
     }
 }
