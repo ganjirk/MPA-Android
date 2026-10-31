@@ -103,17 +103,19 @@ class TicTacToeTest {
     }
 
     @Test
-    fun computerFallsBackToAnyFreeCell() {
-        // Centre and every corner are taken and nobody threatens a line.
-        val board = mapOf(
-            1 to Mark.X, 3 to Mark.O, 5 to Mark.X,
-            7 to Mark.O, 9 to Mark.O
-        )
-        // O threatens 3-6-9 (3 and 9) at 6, so the computer wins there.
-        assertEquals(6, TicTacToe.computerCell(board, firstChoice))
-        val quiet = mapOf(1 to Mark.X, 3 to Mark.O, 5 to Mark.O, 7 to Mark.X, 9 to Mark.X)
-        // X has 7 and 9, so it must block 8.
-        assertEquals(8, TicTacToe.computerCell(quiet, firstChoice))
+    fun computerChecksLinesInOrderAndPrefersWinningToBlocking() {
+        // O can win at 6 (3-6-9) or at 8 (7-8-9). Rows are checked before columns, so it plays 8,
+        // exactly as the website does.
+        val twoWins = mapOf(1 to Mark.X, 5 to Mark.X, 3 to Mark.O, 7 to Mark.O, 9 to Mark.O)
+        assertEquals(8, TicTacToe.computerCell(twoWins, firstChoice))
+
+        // X has 7 and 9, so the computer (which has no win of its own) must block at 8.
+        val mustBlock = mapOf(1 to Mark.X, 3 to Mark.O, 5 to Mark.O, 7 to Mark.X, 9 to Mark.X)
+        assertEquals(8, TicTacToe.computerCell(mustBlock, firstChoice))
+
+        // Winning beats blocking: O wins at 2 (1-2-3) even though X threatens 4-5-6 at 6.
+        val winBeatsBlock = mapOf(1 to Mark.O, 3 to Mark.O, 4 to Mark.X, 5 to Mark.X, 9 to Mark.X)
+        assertEquals(2, TicTacToe.computerCell(winBeatsBlock, firstChoice))
     }
 
     @Test
