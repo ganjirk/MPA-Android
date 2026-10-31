@@ -25,8 +25,9 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 11 | `phase11/website-parity-units-guess` | Unit converter with all 8 website categories; Number Guess levels, chances and stats | Merged |
 | 12 | `phase12/expense-tracker` | Expense Tracker on the Productivity tab, matching the website: categories, monthly budget, breakdown, CSV export | In review |
 | 15 | `phase15/tic-tac-toe` | Tic Tac Toe on the Games tab, matching the website: vs computer and two players, with results kept on the device | In review |
+| 17 | `phase17/ludo` | Ludo on the Games tab, matching the website: 2 to 4 players, computer opponents, board, dice and a game that is kept on the device | In review |
 
-Games (Number Guess with levels, Pong, Tic Tac Toe), Utilities (unit converter and Binary converter), Productivity (local
+Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo), Utilities (unit converter and Binary converter), Productivity (local
 to-do list and Expense Tracker) and Account (sign in with the MPA website account) are implemented. Tasks and scores
 are stored only on the device; reminders and syncing with the MPA backend are not built yet.
 
@@ -67,6 +68,7 @@ app/src/main/java/com/grk/mpa/app/
     BinaryConverter.kt
     NumberGuessGame.kt, GuessLevel.kt, GuessStats.kt   Number Guess rules, levels and stats
     TicTacToe.kt, TicTacToeStats.kt, TicTacToeCodec.kt   Tic Tac Toe rules, computer player, results and storage format
+    Ludo.kt, LudoCodec.kt   Ludo rules, computer players, board layout and storage format
     NumberFormatter.kt
     PongGame.kt     Pong physics and the fixed-step clock
     Task*.kt        Task model, list operations and the storage text format
@@ -80,7 +82,7 @@ app/src/main/java/com/grk/mpa/app/
     MpaApp.kt       Scaffold and bottom navigation bar
     navigation/     Destination enum, NavHost, icons
     home/           Home screen
-    games/          Number Guess, Pong and Tic Tac Toe screens and ViewModels
+    games/          Number Guess, Pong, Tic Tac Toe and Ludo screens and ViewModels
     utilities/      Unit and Binary converter screens and ViewModels
     productivity/   Tasks and Expense Tracker screens and ViewModels
     account/        Sign-in and account screen and ViewModel

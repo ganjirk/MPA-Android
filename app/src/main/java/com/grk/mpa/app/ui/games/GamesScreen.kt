@@ -44,7 +44,8 @@ import androidx.compose.material3.Card
 private enum class Game(@StringRes val titleRes: Int) {
     NUMBER_GUESS(R.string.game_number_guess),
     PONG(R.string.game_pong),
-    TIC_TAC_TOE(R.string.game_tic_tac_toe)
+    TIC_TAC_TOE(R.string.game_tic_tac_toe),
+    LUDO(R.string.game_ludo)
 }
 
 @Composable
@@ -71,6 +72,7 @@ fun GamesScreen(modifier: Modifier = Modifier) {
             Game.NUMBER_GUESS -> NumberGuessScreen()
             Game.PONG -> PongScreen()
             Game.TIC_TAC_TOE -> TicTacToeScreen()
+            Game.LUDO -> LudoScreen()
         }
     }
 }
