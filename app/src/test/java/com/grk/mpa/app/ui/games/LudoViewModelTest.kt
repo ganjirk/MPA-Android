@@ -5,6 +5,7 @@ import com.grk.mpa.app.core.LudoKind
 import com.grk.mpa.app.core.LudoPhase
 import com.grk.mpa.app.core.LudoState
 import com.grk.mpa.app.data.LudoRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
@@ -20,6 +21,16 @@ private class FakeLudoRepository(var stored: LudoState? = null) : LudoRepository
     override suspend fun save(state: LudoState) {
         saveCount++
         stored = state
+    }
+}
+
+
+private class DelayedLudoRepository : LudoRepository {
+    val loaded = CompletableDeferred<LudoState?>()
+    var saveCount = 0
+    override suspend fun load(): LudoState? = loaded.await()
+    override suspend fun save(state: LudoState) {
+        saveCount++
     }
 }
 
@@ -123,6 +134,25 @@ class LudoViewModelTest {
         val vm = viewModel(repo)
         assertEquals(3, vm.playerCount)
         assertEquals(listOf(LudoKind.EASY, LudoKind.HUMAN, LudoKind.CPU, LudoKind.CPU), vm.kinds)
+    }
+
+
+    @Test
+    fun newGameWaitsUntilSavedGameRestorationFinishes() {
+        val repo = DelayedLudoRepository()
+        val vm = LudoViewModel(repo, CoroutineScope(Dispatchers.Unconfined), Random(1))
+
+        assertFalse(vm.isLoaded)
+        vm.newGame()
+        assertFalse(vm.isLoaded)
+        assertEquals(0, repo.saveCount)
+
+        val saved = Ludo.newGame(listOf(LudoKind.EASY, LudoKind.HUMAN))
+        repo.loaded.complete(saved)
+
+        assertTrue(vm.isLoaded)
+        assertTrue(vm.restored)
+        assertEquals(saved.seats, vm.state.seats)
     }
 
     @Test
