@@ -38,7 +38,8 @@
     <string name="guess_stats_no_win">No wins yet on %1$s.</string>
     <string name="tool_units">Units</string>
     <string name="tool_binary">Binary</string>
-    <string name="units_hint">Type in any field and the others update.</string>
+    <string name="units_hint">Expand a converter, then type in any field to update the others.</string>
+    <string name="units_minimum">Minimum: %1$s</string>
     <string name="error_invalid_number">Enter a valid number.</string>
     <string name="binary_mode_dec_to_bin">Decimal to binary</string>
     <string name="binary_mode_bin_to_dec">Binary to decimal</string>
