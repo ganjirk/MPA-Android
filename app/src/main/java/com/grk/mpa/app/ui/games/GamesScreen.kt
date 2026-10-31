@@ -1,6 +1,7 @@
 package com.grk.mpa.app.ui.games
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,7 +43,8 @@ import androidx.compose.material3.Card
 
 private enum class Game(@StringRes val titleRes: Int) {
     NUMBER_GUESS(R.string.game_number_guess),
-    PONG(R.string.game_pong)
+    PONG(R.string.game_pong),
+    TIC_TAC_TOE(R.string.game_tic_tac_toe)
 }
 
 @Composable
@@ -52,7 +54,9 @@ fun GamesScreen(modifier: Modifier = Modifier) {
 
     Column(modifier.fillMaxSize()) {
         Row(
-            Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Game.entries.forEach { game ->
@@ -66,6 +70,7 @@ fun GamesScreen(modifier: Modifier = Modifier) {
         when (selected) {
             Game.NUMBER_GUESS -> NumberGuessScreen()
             Game.PONG -> PongScreen()
+            Game.TIC_TAC_TOE -> TicTacToeScreen()
         }
     }
 }
