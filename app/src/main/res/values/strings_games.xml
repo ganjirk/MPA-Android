@@ -1,6 +1,7 @@
 <resources>
     <string name="game_number_guess">Number Guess</string>
     <string name="game_pong">Pong</string>
+    <string name="game_tic_tac_toe">Tic Tac Toe</string>
 
     <string name="pong_title">Pong</string>
     <string name="pong_player_left">Left player</string>

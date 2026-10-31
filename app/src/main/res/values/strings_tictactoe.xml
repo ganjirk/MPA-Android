@@ -1,0 +1,34 @@
+<resources>
+    <string name="ttt_title">Tic Tac Toe</string>
+    <string name="ttt_mode_computer">Vs Computer</string>
+    <string name="ttt_mode_local">Two Players</string>
+    <string name="ttt_description_computer">You are X. The computer is O.</string>
+    <string name="ttt_description_local">Pass the phone: Player 1 is X and goes first, Player 2 is O.</string>
+    <string name="ttt_player1_label">Player 1 (X)</string>
+    <string name="ttt_player2_label">Player 2 (O)</string>
+    <string name="ttt_error_name_length">Player names must be 1 to 24 characters.</string>
+    <string name="ttt_error_same_names">Please enter different names for Player 1 and Player 2.</string>
+
+    <string name="ttt_status_your_turn">Your turn (X)</string>
+    <string name="ttt_status_turn">%1$s\'s turn (%2$s)</string>
+    <string name="ttt_status_you_win">You win!</string>
+    <string name="ttt_status_computer_wins">The computer wins.</string>
+    <string name="ttt_status_player_wins">%1$s wins!</string>
+    <string name="ttt_status_draw">It\'s a draw.</string>
+    <string name="ttt_new_game">New game</string>
+
+    <string name="ttt_cell_description">Cell %1$d, %2$s</string>
+    <string name="ttt_cell_empty">empty</string>
+
+    <string name="ttt_your_record_title">Your record against the computer</string>
+    <string name="ttt_played">Played</string>
+    <string name="ttt_won">Won</string>
+    <string name="ttt_lost">Lost</string>
+    <string name="ttt_drawn">Drawn</string>
+    <string name="ttt_leaderboard_title">Two-player leaderboard</string>
+    <string name="ttt_leaderboard_empty">No finished two-player games yet.</string>
+    <string name="ttt_record_line">P%1$d  W%2$d  L%3$d  D%4$d</string>
+    <string name="ttt_recent_title">Recent matches</string>
+    <string name="ttt_recent_players">%1$s (X) vs %2$s (O)</string>
+    <string name="ttt_recent_won">%1$s won</string>
+</resources>
