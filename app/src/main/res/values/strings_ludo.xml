@@ -1,0 +1,51 @@
+<resources>
+    <string name="ludo_title">Ludo</string>
+    <string name="ludo_players">Players</string>
+    <string name="ludo_new_game">New game</string>
+    <string name="ludo_board_description">Ludo board</string>
+
+    <string name="ludo_color_red">Red</string>
+    <string name="ludo_color_green">Green</string>
+    <string name="ludo_color_yellow">Yellow</string>
+    <string name="ludo_color_blue">Blue</string>
+
+    <string name="ludo_kind_human">Human</string>
+    <string name="ludo_kind_cpu">Computer</string>
+    <string name="ludo_kind_easy">Computer (easy)</string>
+
+    <string name="ludo_hint_over">%1$s wins! Press New game to play again.</string>
+    <string name="ludo_hint_roll_human">%1$s: roll the dice.</string>
+    <string name="ludo_hint_roll_cpu">%1$s (computer) is rolling…</string>
+    <string name="ludo_hint_pick">%1$s: tap a glowing token to move %2$d.</string>
+    <string name="ludo_hint_moving">%1$s: moving…</string>
+    <string name="ludo_hint_cpu_choosing">%1$s (computer) is choosing…</string>
+    <string name="ludo_welcome_back">Welcome back: your game was kept.</string>
+
+    <string name="ludo_ev_roll">%1$s rolled %2$d.</string>
+    <string name="ludo_ev_nomove">No move possible.</string>
+    <string name="ludo_ev_triple">Three 6s in a row: turn lost.</string>
+    <string name="ludo_ev_out">%1$s brought token %2$d out.</string>
+    <string name="ludo_ev_moved">%1$s moved token %2$d by %3$d.</string>
+    <string name="ludo_ev_home">Token %1$d is home!</string>
+    <string name="ludo_ev_capture">Captured %1$s token %2$d! Roll again.</string>
+
+    <string name="ludo_dice_roll">Roll</string>
+    <string name="ludo_dice_move">Move</string>
+    <string name="ludo_dice_wait">…</string>
+    <string name="ludo_dice_computer">Computer</string>
+    <string name="ludo_dice_done">Done</string>
+    <string name="ludo_dice_cd_roll">Roll the dice for %1$s</string>
+    <string name="ludo_dice_cd_last">Dice, last roll %1$d</string>
+    <string name="ludo_dice_cd">Dice</string>
+    <string name="ludo_move_token">Move token %1$d</string>
+
+    <string name="ludo_how_title">How to play</string>
+    <string name="ludo_rule_1">Roll a 6 to bring a token out of your base. Every 6 gives you another roll; three 6s in a row lose your turn.</string>
+    <string name="ludo_rule_2">Move a token clockwise by the number rolled. If only one move is possible it is made for you.</string>
+    <string name="ludo_rule_3">Landing on an opponent sends their token back to its base and earns you another roll, unless it is on a safe square (the coloured start squares and the ★ squares).</string>
+    <string name="ludo_rule_4">Capturing an opponent gives you another roll, just like a 6.</string>
+    <string name="ludo_rule_5">Your own tokens can share a square. Tokens of different colours that share a safe square do not capture each other.</string>
+    <string name="ludo_rule_6">After a full lap, turn into your coloured home column. You need the exact number to reach home.</string>
+    <string name="ludo_rule_7">The first player to bring all four tokens home wins.</string>
+    <string name="ludo_saved_note">The game is saved on this device, so you can come back to it.</string>
+</resources>
