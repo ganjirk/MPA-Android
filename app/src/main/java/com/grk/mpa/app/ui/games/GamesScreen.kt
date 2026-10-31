@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -55,7 +56,8 @@ private enum class Game(
     NUMBER_GUESS(R.string.game_number_guess, R.string.game_number_guess_description, "🎯"),
     PONG(R.string.game_pong, R.string.game_pong_description, "🏓"),
     TIC_TAC_TOE(R.string.game_tic_tac_toe, R.string.game_tic_tac_toe_description, "⭕"),
-    LUDO(R.string.game_ludo, R.string.game_ludo_description, "🎲")
+    LUDO(R.string.game_ludo, R.string.game_ludo_description, "🎲"),
+    SUDOKU(R.string.game_sudoku, R.string.game_sudoku_description, "🔢")
 }
 
 @Composable
@@ -113,6 +115,17 @@ fun GamesScreen(modifier: Modifier = Modifier) {
                     onClick = { selectedName = Game.LUDO.name }
                 )
             }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                GameTile(
+                    game = Game.SUDOKU,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedName = Game.SUDOKU.name }
+                )
+                Spacer(Modifier.weight(1f))
+            }
         }
     } else {
         Column(Modifier.fillMaxSize()) {
@@ -138,6 +151,7 @@ fun GamesScreen(modifier: Modifier = Modifier) {
                 Game.PONG -> PongScreen()
                 Game.TIC_TAC_TOE -> TicTacToeScreen()
                 Game.LUDO -> LudoScreen()
+                Game.SUDOKU -> SudokuScreen()
             }
         }
     }
