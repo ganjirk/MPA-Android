@@ -26,7 +26,7 @@ sealed interface TaskSyncResult {
  *
  * Device-only tasks are intentionally never uploaded here. The first sync imports server tasks
  * and links the store to the account. Switching accounts is blocked rather than reassigning
- * existing server IDs. A separate, deliberate migration flow can be added later.
+ * existing server IDs. Legacy tasks are queued only through the explicit selection-and-prepare UI flow.
  */
 class TaskSyncCoordinator(
     private val api: MpaApi,
