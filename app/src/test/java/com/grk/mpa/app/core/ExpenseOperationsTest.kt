@@ -3,6 +3,7 @@ package com.grk.mpa.app.core
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.YearMonth
@@ -114,4 +115,29 @@ class ExpenseOperationsTest {
         assertEquals(-250L, ExpenseOperations.remainingPaise(5000, 5250))
         assertNull(ExpenseOperations.remainingPaise(null, 100))
     }
+    @Test
+    fun updatingSyncedExpenseKeepsRemoteIdAndMarksPendingUpdate() {
+        val original = Expense(2, 200, ExpenseCategory.HOME, "B", date(10, 2), 77L, ExpenseSyncState.SYNCED)
+        val result = ExpenseOperations.update(ExpenseData(expenses = listOf(original)), 2, 999, ExpenseCategory.HEALTH, "Doctor", date(10, 5))
+        assertEquals(77L, result.expenses.single().remoteId)
+        assertEquals(ExpenseSyncState.PENDING_UPDATE, result.expenses.single().syncState)
+        assertEquals("Doctor", result.expenses.single().description)
+    }
+
+    @Test
+    fun deletingSyncedExpenseRetainsRemoteDeleteTombstone() {
+        val synced = Expense(2, 200, ExpenseCategory.HOME, "B", date(10, 2), 77L, ExpenseSyncState.SYNCED)
+        val result = ExpenseOperations.delete(ExpenseData(expenses = listOf(synced)), 2)
+        assertEquals(emptyList<Expense>(), result.expenses)
+        assertEquals(setOf(77L), result.pendingDeleteRemoteIds)
+    }
+
+    @Test
+    fun deletingLocalOnlyExpenseDoesNotCreateRemoteTombstone() {
+        val local = Expense(2, 200, ExpenseCategory.HOME, "B", date(10, 2))
+        val result = ExpenseOperations.delete(ExpenseData(expenses = listOf(local)), 2)
+        assertTrue(result.expenses.isEmpty())
+        assertTrue(result.pendingDeleteRemoteIds.isEmpty())
+    }
+
 }
