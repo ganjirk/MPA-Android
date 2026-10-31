@@ -265,8 +265,9 @@ private fun StatusCard(viewModel: LudoViewModel, newGameStarted: Boolean) {
     val state = viewModel.state
     val who = colorName(state.seats[state.turn].color)
     val human = viewModel.isHumanTurn
+    val showNewGameStarted = newGameStarted && state.moves == 0 && state.dice == 0 && state.phase == LudoPhase.ROLL
     val hint = when {
-        newGameStarted -> stringResource(R.string.ludo_new_game_started)
+        showNewGameStarted -> stringResource(R.string.ludo_new_game_started)
         !viewModel.isLoaded -> stringResource(R.string.ludo_loading_game)
         state.phase == LudoPhase.OVER -> stringResource(R.string.ludo_hint_over, colorName(state.seats[state.winner].color))
         state.phase == LudoPhase.ROLL ->
@@ -278,7 +279,7 @@ private fun StatusCard(viewModel: LudoViewModel, newGameStarted: Boolean) {
     }
     val last = when {
         !viewModel.isLoaded -> stringResource(R.string.ludo_loading_game)
-        newGameStarted -> stringResource(R.string.ludo_new_game_ready)
+        showNewGameStarted -> stringResource(R.string.ludo_new_game_ready)
         viewModel.restored -> stringResource(R.string.ludo_welcome_back)
         else -> eventText(state)
     }
