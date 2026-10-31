@@ -90,6 +90,8 @@ private fun kindLabel(kind: LudoKind): Int = when (kind) {
     LudoKind.EASY -> R.string.ludo_kind_easy
 }
 
+
+
 @Composable
 fun LudoScreen(
     modifier: Modifier = Modifier,
@@ -99,7 +101,7 @@ fun LudoScreen(
     var rolling by remember { mutableStateOf(false) }
     var spinFace by remember { mutableIntStateOf(0) }
 
-    // Dice animation, then the roll itself
+    // Animate the dice, then apply the roll.
     LaunchedEffect(rolling) {
         if (rolling) {
             repeat(7) {
@@ -111,9 +113,12 @@ fun LudoScreen(
         }
     }
 
-    // Computer turns and forced moves happen on their own, paced so people can follow
-    LaunchedEffect(state, viewModel.isLoaded) {
-        if (!viewModel.isLoaded || state.phase == LudoPhase.OVER || rolling) return@LaunchedEffect
+    // Computer turns and forced moves only run after Start Game.
+    LaunchedEffect(state, viewModel.isLoaded, viewModel.gameStarted, rolling) {
+        if (!viewModel.isLoaded || !viewModel.gameStarted ||
+            state.phase == LudoPhase.OVER || rolling
+        ) return@LaunchedEffect
+
         if (state.phase == LudoPhase.ROLL) {
             if (!viewModel.isHumanTurn) {
                 delay(750)
@@ -133,125 +138,249 @@ fun LudoScreen(
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(MpaDimensions.itemSpacing)
     ) {
-        Text(
-            stringResource(R.string.ludo_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        SetupSection(viewModel, onNewGame = {
-            rolling = false
-            viewModel.newGame()
-        })
-        StatusCard(viewModel)
-        LudoBoard(
-            state = state,
-            highlighted = if (viewModel.canPickToken) viewModel.legalTokens else emptyList(),
-            onTokenClick = { seat, token -> viewModel.onTokenClick(seat, token) }
-        )
-        DiceRow(viewModel, rolling, spinFace, onRoll = { rolling = true })
-        if (viewModel.canPickToken) {
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                stringResource(R.string.ludo_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            if (viewModel.gameStarted) {
+                OutlinedButton(
+                    onClick = {
+                        rolling = false
+                        viewModel.newGame()
+                    },
+                    enabled = viewModel.isLoaded
+                ) {
+                    Text(stringResource(R.string.ludo_new_game))
+                }
+            }
+        }
+
+        StatusCard(viewModel, false)
+
+        if (!viewModel.gameStarted) {
+            SetupSection(viewModel)
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                )
             ) {
-                viewModel.legalTokens.forEach { token ->
-                    OutlinedButton(onClick = { viewModel.onTokenClick(state.turn, token) }) {
-                        Text(stringResource(R.string.ludo_move_token, token + 1))
+                Box(Modifier.padding(8.dp)) {
+                    LudoBoard(
+                        state = state,
+                        highlighted = if (viewModel.canPickToken) {
+                            viewModel.legalTokens
+                        } else {
+                            emptyList()
+                        },
+                        onTokenClick = { seat, token ->
+                            viewModel.onTokenClick(seat, token)
+                        }
+                    )
+                }
+            }
+
+            DiceRow(viewModel, rolling, spinFace) {
+                rolling = true
+            }
+
+            if (viewModel.canPickToken) {
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+                ) {
+                    viewModel.legalTokens.forEach { token ->
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.onTokenClick(state.turn, token)
+                            }
+                        ) {
+                            Text(stringResource(R.string.ludo_move_token, token + 1))
+                        }
                     }
                 }
             }
         }
+
         HowToPlayCard()
     }
 }
 
 @Composable
-private fun SetupSection(viewModel: LudoViewModel, onNewGame: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)) {
-        Text(
-            stringResource(R.string.ludo_players),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onBackground
+private fun SetupSection(viewModel: LudoViewModel) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)) {
-            (2..4).forEach { count ->
-                FilterChip(
-                    selected = viewModel.playerCount == count,
-                    onClick = { viewModel.onPlayerCountChange(count) },
-                    label = { Text(count.toString()) }
-                )
-            }
-        }
-        Ludo.coloursFor(viewModel.playerCount).forEach { color ->
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(Modifier.size(14.dp).background(LUDO_COLORS[color], CircleShape))
-                    Text(
-                        stringResource(LUDO_COLOR_NAMES[color]),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+        ) {
+            Text(
+                stringResource(R.string.ludo_setup_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Text(
+                stringResource(R.string.ludo_players),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)) {
+                (2..4).forEach { count ->
+                    FilterChip(
+                        selected = viewModel.playerCount == count,
+                        onClick = { viewModel.onPlayerCountChange(count) },
+                        enabled = viewModel.isLoaded && !viewModel.gameStarted,
+                        label = { Text(count.toString()) }
                     )
                 }
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
-                ) {
-                    LudoKind.entries.forEach { kind ->
-                        FilterChip(
-                            selected = viewModel.kinds[color] == kind,
-                            onClick = { viewModel.onKindChange(color, kind) },
-                            label = { Text(stringResource(kindLabel(kind))) }
+            }
+
+            Ludo.coloursFor(viewModel.playerCount).forEach { color ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            Modifier.size(14.dp)
+                                .background(LUDO_COLORS[color], CircleShape)
                         )
+                        Text(
+                            stringResource(LUDO_COLOR_NAMES[color]),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+                    ) {
+                        LudoKind.entries.forEach { kind ->
+                            FilterChip(
+                                selected = viewModel.kinds[color] == kind,
+                                onClick = {
+                                    viewModel.onKindChange(color, kind)
+                                },
+                                enabled = viewModel.isLoaded && !viewModel.gameStarted,
+                                label = { Text(stringResource(kindLabel(kind))) }
+                            )
+                        }
                     }
                 }
             }
+
+            Button(
+                onClick = { viewModel.startGame() },
+                enabled = viewModel.isLoaded && !viewModel.gameStarted,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.ludo_start_game))
+            }
         }
-        Button(onClick = onNewGame) { Text(stringResource(R.string.ludo_new_game)) }
     }
 }
+
+
 
 @Composable
 private fun colorName(color: Int): String = stringResource(LUDO_COLOR_NAMES[color])
 
+
 @Composable
-private fun StatusCard(viewModel: LudoViewModel) {
+private fun StatusCard(viewModel: LudoViewModel, newGameStarted: Boolean) {
     val state = viewModel.state
+
     val who = colorName(state.seats[state.turn].color)
     val human = viewModel.isHumanTurn
+
     val hint = when {
-        state.phase == LudoPhase.OVER -> stringResource(R.string.ludo_hint_over, colorName(state.seats[state.winner].color))
+        !viewModel.isLoaded ->
+            stringResource(R.string.ludo_loading_game)
+
+        !viewModel.gameStarted ->
+            stringResource(R.string.ludo_setup_hint)
+
+        state.phase == LudoPhase.OVER ->
+            stringResource(
+                R.string.ludo_hint_over,
+                colorName(state.seats[state.winner].color)
+            )
+
         state.phase == LudoPhase.ROLL ->
-            if (human) stringResource(R.string.ludo_hint_roll_human, who) else stringResource(R.string.ludo_hint_roll_cpu, who)
+            if (human) {
+                stringResource(R.string.ludo_hint_roll_human, who)
+            } else {
+                stringResource(R.string.ludo_hint_roll_cpu, who)
+            }
+
         human ->
-            if (viewModel.canPickToken) stringResource(R.string.ludo_hint_pick, who, state.dice)
-            else stringResource(R.string.ludo_hint_moving, who)
-        else -> stringResource(R.string.ludo_hint_cpu_choosing, who)
+            if (viewModel.canPickToken) {
+                stringResource(R.string.ludo_hint_pick, who, state.dice)
+            } else {
+                stringResource(R.string.ludo_hint_moving, who)
+            }
+
+        else ->
+            stringResource(R.string.ludo_hint_cpu_choosing, who)
     }
-    val last = if (viewModel.restored) stringResource(R.string.ludo_welcome_back) else eventText(state)
+
+    val last = when {
+        !viewModel.isLoaded -> ""
+        !viewModel.gameStarted -> ""
+        viewModel.restored -> stringResource(R.string.ludo_welcome_back)
+        else -> eventText(state)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
-        Column(Modifier.padding(12.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(
+            Modifier.padding(12.dp).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
             Text(
                 hint,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
-                last.ifEmpty { " " },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                minLines = 2
-            )
+
+            if (last.isNotEmpty()) {
+                Text(
+                    last,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
+
 
 @Composable
 private fun eventText(state: LudoState): String {
