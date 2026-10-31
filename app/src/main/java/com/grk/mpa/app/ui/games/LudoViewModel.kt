@@ -72,16 +72,17 @@ class LudoViewModel(
     val canPickToken: Boolean get() = isLoaded && state.phase == LudoPhase.MOVE && isHumanTurn && legalTokens.size > 1
 
     fun onPlayerCountChange(count: Int) {
-        if (count !in 2..4) return
+        if (!isLoaded || count !in 2..4) return
         playerCount = count
     }
 
     fun onKindChange(color: Int, kind: LudoKind) {
-        if (color !in 0..3) return
+        if (!isLoaded || color !in 0..3) return
         kinds = kinds.toMutableList().also { it[color] = kind }
     }
 
     fun newGame() {
+        if (!isLoaded) return
         state = newState()
         restored = false
         persist()
