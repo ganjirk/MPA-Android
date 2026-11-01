@@ -68,6 +68,9 @@ class AuthRepository(private val api: MpaApi, private val storage: AuthStorage) 
     suspend fun updateProfile(request: UpdateProfileRequest): ApiResult<RemoteProfile> =
         withSession { api.updateProfile(it, request) }
 
+    suspend fun uploadProfilePicture(bytes: ByteArray, mimeType: String, fileName: String): ApiResult<RemoteProfile> =
+        withSession { api.uploadProfilePicture(it, bytes, mimeType, fileName) }
+
     suspend fun resendVerification(): ApiResult<AccountActionResponse> =
         withSession { api.resendVerification(it) }
 
