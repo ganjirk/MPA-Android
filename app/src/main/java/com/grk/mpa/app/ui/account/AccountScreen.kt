@@ -416,7 +416,7 @@ private fun PasswordChangeDialog(
     onDismiss: () -> Unit,
     onSubmit: (String, String, String) -> Unit
 ) {
-    var current by rememberSaveable { mutableStateOf("") }
+    var current by remember { mutableStateOf("") }
     var new by rememberSaveable { mutableStateOf("") }
     var confirm by rememberSaveable { mutableStateOf("") }
     AlertDialog(
@@ -441,7 +441,7 @@ private fun DeactivateAccountDialog(
     onDismiss: () -> Unit,
     onSubmit: (String) -> Unit
 ) {
-    var password by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var confirmation by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
