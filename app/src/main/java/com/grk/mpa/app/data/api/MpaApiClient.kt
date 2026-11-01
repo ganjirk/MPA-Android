@@ -103,6 +103,14 @@ class MpaApiClient(
         }
     }
 
+    override suspend fun removeProfilePicture(accessToken: String): ApiResult<RemoteProfile> =
+        call(
+            "api/v1/account/profile/",
+            method = "PATCH",
+            body = json.encodeToString(mapOf("remove_profile_picture" to true)),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteProfile>(it) }
+
     override suspend fun resendVerification(accessToken: String): ApiResult<AccountActionResponse> =
         call(
             "api/v1/account/verify-email/resend/",
