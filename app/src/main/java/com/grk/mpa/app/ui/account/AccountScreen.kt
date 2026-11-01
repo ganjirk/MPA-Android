@@ -132,6 +132,8 @@ private fun SignedOutContent(viewModel: AccountViewModel, modifier: Modifier) {
     val uriHandler = LocalUriHandler.current
     ScreenColumn(modifier) {
         SectionTitle(stringResource(R.string.account_sign_in_title))
+        viewModel.actionMessage?.let { InfoCard(it) }
+        viewModel.actionError?.let { InfoCard(it) }
         Text(
             stringResource(R.string.account_sign_in_subtitle),
             style = MaterialTheme.typography.bodyMedium,
