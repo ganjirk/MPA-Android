@@ -1,0 +1,38 @@
+<resources>
+    <string name="matchcards_title">Match Cards</string>
+    <string name="matchcards_intro">Flip two cards, remember their places, and match every pair.</string>
+    <string name="matchcards_difficulty">Difficulty</string>
+    <string name="matchcards_easy">Easy · 6 pairs</string>
+    <string name="matchcards_medium">Medium · 8 pairs</string>
+    <string name="matchcards_hard">Hard · 12 pairs</string>
+    <string name="matchcards_restart">Shuffle &amp; restart</string>
+    <string name="matchcards_moves">Moves</string>
+    <string name="matchcards_matched">Matched</string>
+    <string name="matchcards_time">Time</string>
+    <string name="matchcards_progress">%1$d / %2$d</string>
+
+    <string name="matchcards_status_prompt">Find all matching pairs to finish the game.</string>
+    <string name="matchcards_status_match">Match found! Keep going.</string>
+    <string name="matchcards_status_no_match">Not a match — try to remember their positions.</string>
+    <string name="matchcards_status_done">Congratulations! You matched every pair.</string>
+
+    <string name="matchcards_card_hidden">Card %1$d, hidden</string>
+    <string name="matchcards_card_shown">Card %1$d, %2$s</string>
+    <string name="matchcards_card_matched">Matched card %1$s</string>
+
+    <string name="matchcards_complete_title">All pairs matched!</string>
+    <string name="matchcards_summary">%1$d moves · %2$s · %3$s</string>
+    <string name="matchcards_saved">Result saved to your history on this device.</string>
+    <string name="matchcards_play_again">Play again</string>
+
+    <string name="matchcards_history_title">History</string>
+    <string name="matchcards_best_title">Best by difficulty</string>
+    <string name="matchcards_best_none">No games yet</string>
+    <string name="matchcards_best_line">%1$d moves · %2$d seconds</string>
+    <string name="matchcards_recent_title">Recent games</string>
+    <string name="matchcards_recent_none">No saved games yet. Finish a game to record your result.</string>
+    <string name="matchcards_recent_line">%1$s · %2$s · %3$d moves · %4$d sec</string>
+    <string name="matchcards_difficulty_easy">Easy</string>
+    <string name="matchcards_difficulty_medium">Medium</string>
+    <string name="matchcards_difficulty_hard">Hard</string>
+</resources>
