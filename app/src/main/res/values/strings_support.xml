@@ -1,0 +1,76 @@
+<resources>
+    <string name="support_back">← Back</string>
+    <string name="support_help_link">Help &amp; tips</string>
+    <string name="support_contact_link">Contact us</string>
+
+    <string name="help_title">Help &amp; tips</string>
+    <string name="help_subtitle">Quick answers, and how to get the most out of MPA.</string>
+
+    <string name="help_about_title">What is in the app</string>
+    <string name="help_about_games">Games: Number Guess, Pong, Tic Tac Toe, Ludo, Sudoku and Chess. Your progress is kept on this device.</string>
+    <string name="help_about_utilities">Utilities: a unit converter with eight categories and a binary converter.</string>
+    <string name="help_about_productivity">Productivity: tasks, an expense tracker with a monthly budget and CSV export, and reminders.</string>
+    <string name="help_about_account">Account: sign in with your MPA website account to keep tasks and expenses in step with the website.</string>
+
+    <string name="help_quick_title">Add things in one line (website)</string>
+    <string name="help_quick_body">On the MPA website, the Add anything box on your dashboard turns a short line into an expense or a task. Type it the way you would say it:</string>
+    <string name="help_quick_examples">tea 20 → expense of ₹20 in Food, dated today\nlunch 180 yesterday → expense of ₹180 in Food, dated yesterday\nauto 40 cash → expense of ₹40 in Transport\nrent 12000 → expense of ₹12,000 in Home &amp; bills\nshoes 2k → expense of ₹2,000 in Shopping (k means thousand)\ncall mom Friday 6pm → task "Call mom (6pm)", due next Friday\npay electricity bill tomorrow → task due tomorrow\nsubmit report in 3 days urgent → high-priority task due in 3 days</string>
+    <string name="help_tips_title">Good to know</string>
+    <string name="help_tip_1">You always see what was understood and can change it before anything is saved.</string>
+    <string name="help_tip_2">Start with "expense:" or "task:" if it guesses wrong, for example "task: buy milk 2".</string>
+    <string name="help_tip_3">Dates you can use: today, tomorrow, yesterday, a weekday (fri), "in 3 days", "5 nov", "15/11". A weekday means the next one for a task and the most recent one for an expense.</string>
+    <string name="help_tip_4">Amounts can be written 20, ₹20, rs 20 or 2k. A number in the middle of a task, like "meeting room 4", is left alone.</string>
+    <string name="help_open_website">Open the website</string>
+
+    <string name="help_faq_title">Questions</string>
+    <string name="help_q1">Who can see my tasks and expenses?</string>
+    <string name="help_a1">They are saved on this device. If you sign in, your MPA account keeps its own copy, and only you can see it when signed in. As the site owner I can reach the database as an administrator. Messages you send through Contact us are read by me.</string>
+    <string name="help_q2">Where is my game progress saved?</string>
+    <string name="help_a2">On this device. It is not on our server, so it does not follow you to another phone.</string>
+    <string name="help_q3">Does it work without internet?</string>
+    <string name="help_a3">Yes, for the games, converters, tasks, expenses and reminders. Signing in, syncing and sending a message need a connection.</string>
+    <string name="help_q4">How do reminders work?</string>
+    <string name="help_a4">Open Productivity and choose Reminders. Add a title, a date and time, and how often it repeats. At that time you get a notification on this device, so allow notifications when Android asks.</string>
+    <string name="help_q5">I forgot my password.</string>
+    <string name="help_a5">Use Forgot password on the Account tab. It opens the website; follow the email we send. The link works for one hour.</string>
+    <string name="help_q6">How do I get a copy of my data?</string>
+    <string name="help_a6">Sign in on the website and use Export my data. It gives you spreadsheet files and one backup file.</string>
+    <string name="help_q7">How do I close my account?</string>
+    <string name="help_a7">Account settings on the website has Deactivate account. Deactivating stops sign-in; it does not erase your information. To have it erased as well, send us a message through Contact us.</string>
+    <string name="help_still_stuck">Still stuck? Contact us and quote your reference ID if you have one.</string>
+
+    <string name="contact_title">Contact us</string>
+    <string name="contact_subtitle">Questions, feedback or a problem? Send us a message and we will get back to you.</string>
+    <string name="contact_name">Name</string>
+    <string name="contact_email">Email</string>
+    <string name="contact_topic">Topic</string>
+    <string name="contact_topic_question">Question</string>
+    <string name="contact_topic_bug">Something is broken</string>
+    <string name="contact_topic_idea">Idea or feature request</string>
+    <string name="contact_topic_account">Account or privacy</string>
+    <string name="contact_topic_other">Other</string>
+    <string name="contact_subject">Subject</string>
+    <string name="contact_message">Message</string>
+    <string name="contact_count">%1$d / %2$d</string>
+    <string name="contact_hint_range">10 to 1000 characters</string>
+    <string name="contact_send">Send message</string>
+    <string name="contact_sending">Sending…</string>
+    <string name="contact_privacy">We use your email only to reply to this message.</string>
+
+    <string name="contact_error_name">Please enter your name.</string>
+    <string name="contact_error_email">Please enter a valid email address.</string>
+    <string name="contact_error_subject">The subject needs at least 4 characters.</string>
+    <string name="contact_error_message">The message needs at least 10 characters.</string>
+    <string name="contact_failed_rejected">The website did not accept this message. Please check the fields and try again.</string>
+    <string name="contact_failed_rate_limited">Too many attempts. Please wait a few minutes and try again.</string>
+    <string name="contact_failed_network">Could not reach the website. Check your connection and try again.</string>
+    <string name="contact_failed_other">Something went wrong. Please try again later.</string>
+
+    <string name="contact_sent_title">Message sent</string>
+    <string name="contact_sent_body">Thanks for getting in touch. Keep this reference ID if you need to follow up about your message.</string>
+    <string name="contact_sent_reference">Reference ID</string>
+    <string name="contact_sent_no_reference">Your message was received.</string>
+    <string name="contact_history_title">Sent from this device</string>
+    <string name="contact_history_note">Quote the reference ID if you follow up. Replies come by email.</string>
+    <string name="contact_send_another">Send another message</string>
+</resources>
