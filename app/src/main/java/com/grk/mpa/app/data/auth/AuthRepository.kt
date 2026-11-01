@@ -85,6 +85,8 @@ class AuthRepository(private val api: MpaApi, private val storage: AuthStorage) 
         return result
     }
 
+    suspend fun exportData(): ApiResult<String> = withSession { api.exportData(it) }
+
     suspend fun deactivateAccount(password: String): ApiResult<AccountActionResponse> {
         val result = withSession { api.deactivateAccount(it, password, "deactivate") }
         if (result is ApiResult.Success) storage.clear()
