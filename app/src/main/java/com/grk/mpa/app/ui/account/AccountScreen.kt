@@ -27,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.grk.mpa.app.R
 import com.grk.mpa.app.data.api.Account
+import com.grk.mpa.app.data.api.RemoteProfile
+import com.grk.mpa.app.data.api.UpdateProfileRequest
 import com.grk.mpa.app.data.api.ApiConfig
 import com.grk.mpa.app.data.api.MpaApiClient
 import com.grk.mpa.app.data.auth.AuthRepository
@@ -73,7 +76,7 @@ fun AccountScreen(
                 }
                 AccountState.SignedOut -> SignedOutContent(viewModel, Modifier)
                 AccountState.Offline -> OfflineContent(viewModel, Modifier)
-                is AccountState.SignedIn -> SignedInContent(state.account, viewModel::signOut, Modifier)
+                is AccountState.SignedIn -> SignedInContent(state.account, viewModel, Modifier)
             }
         }
         Row(
@@ -198,16 +201,34 @@ private fun OfflineContent(viewModel: AccountViewModel, modifier: Modifier) {
 }
 
 @Composable
-private fun SignedInContent(account: Account, onSignOut: () -> Unit, modifier: Modifier) {
-    val uriHandler = LocalUriHandler.current
+private fun SignedInContent(account: Account, viewModel: AccountViewModel, modifier: Modifier) {
+    val profile = viewModel.profile
+    var editing by rememberSaveable { mutableStateOf(false) }
     var confirmSignOut by rememberSaveable { mutableStateOf(false) }
+    var confirmRevoke by rememberSaveable { mutableStateOf(false) }
+    var showPasswordDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeactivateDialog by rememberSaveable { mutableStateOf(false) }
+
+    var firstName by remember(profile) { mutableStateOf(profile?.firstName ?: account.firstName) }
+    var lastName by remember(profile) { mutableStateOf(profile?.lastName ?: account.lastName) }
+    var email by remember(profile) { mutableStateOf(profile?.email ?: account.email) }
+    var phone by remember(profile) { mutableStateOf(profile?.phone.orEmpty()) }
+    var mobile by remember(profile) { mutableStateOf(profile?.mobile.orEmpty()) }
+    var address by remember(profile) { mutableStateOf(profile?.address.orEmpty()) }
+    var designation by remember(profile) { mutableStateOf(profile?.designation.orEmpty()) }
+    var sex by remember(profile) { mutableStateOf(profile?.sex.orEmpty()) }
+    var website by remember(profile) { mutableStateOf(profile?.website.orEmpty()) }
+    var github by remember(profile) { mutableStateOf(profile?.githubID.orEmpty()) }
+    var twitter by remember(profile) { mutableStateOf(profile?.twitID.orEmpty()) }
+    var instagram by remember(profile) { mutableStateOf(profile?.instaID.orEmpty()) }
+    var facebook by remember(profile) { mutableStateOf(profile?.fbID.orEmpty()) }
 
     ScreenColumn(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(64.dp)) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        account.displayName.take(1).uppercase(),
+                        (profile?.displayName ?: account.displayName).take(1).uppercase(),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -216,7 +237,7 @@ private fun SignedInContent(account: Account, onSignOut: () -> Unit, modifier: M
             }
             Column {
                 Text(
-                    account.displayName,
+                    profile?.displayName ?: account.displayName,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -228,22 +249,89 @@ private fun SignedInContent(account: Account, onSignOut: () -> Unit, modifier: M
                 )
             }
         }
-        if (account.email.isNotBlank()) {
+
+        if (viewModel.profileLoading) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                Text("Loading profile…", style = MaterialTheme.typography.bodySmall)
+            }
+        } else if (profile == null) {
+            OutlinedButton(onClick = viewModel::loadProfile, modifier = Modifier.fillMaxWidth()) {
+                Text("Retry loading profile")
+            }
+        }
+
+        if (profile?.email?.isNotBlank() == true || account.email.isNotBlank()) {
             InfoCard(
                 stringResource(
-                    if (account.emailVerified) R.string.account_email_verified else R.string.account_email_unverified,
-                    account.email
+                    if (profile?.emailVerified ?: account.emailVerified) R.string.account_email_verified else R.string.account_email_unverified,
+                    profile?.email ?: account.email
                 )
             )
         }
-        InfoCard(stringResource(R.string.account_local_data_note))
-        Button(
-            onClick = { uriHandler.openUri(ApiConfig.website("user_profile/")) },
-            modifier = Modifier.fillMaxWidth()
-        ) { Text(stringResource(R.string.account_manage_on_website)) }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            SectionTitle("Personal profile")
+            TextButton(onClick = { editing = !editing }, enabled = profile != null) {
+                Text(if (editing) "Close editor" else "Edit")
+            }
+        }
+
+        if (editing && profile != null) {
+            ProfileField("First name", firstName, { firstName = it })
+            ProfileField("Last name", lastName, { lastName = it })
+            ProfileField("Email", email, { email = it }, keyboardType = KeyboardType.Email)
+            ProfileField("Phone", phone, { phone = it }, keyboardType = KeyboardType.Phone)
+            ProfileField("Mobile", mobile, { mobile = it }, keyboardType = KeyboardType.Phone)
+            ProfileField("Address", address, { address = it })
+            ProfileField("Designation", designation, { designation = it })
+            ProfileField("Sex (M, F, O or blank)", sex, { sex = it })
+            SectionTitle("Online profiles")
+            ProfileField("Website", website, { website = it })
+            ProfileField("GitHub", github, { github = it })
+            ProfileField("Twitter / X", twitter, { twitter = it })
+            ProfileField("Instagram", instagram, { instagram = it })
+            ProfileField("Facebook", facebook, { facebook = it })
+            Button(
+                onClick = {
+                    viewModel.saveProfile(
+                        UpdateProfileRequest(
+                            firstName, lastName, email, phone, mobile, address, designation,
+                            sex.trim().uppercase(), website, github, twitter, instagram, facebook
+                        )
+                    )
+                },
+                enabled = !viewModel.profileSaving && firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (viewModel.profileSaving) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                else Text("Save profile")
+            }
+        } else if (profile != null) {
+            InfoCard("Email: ${profile.email}\nPhone: ${profile.phone.ifBlank { "Not added" }}\nMobile: ${profile.mobile.ifBlank { "Not added" }}\nAddress: ${profile.address.ifBlank { "Not added" }}\nDesignation: ${profile.designation.ifBlank { "Not added" }}")
+        }
+
+        viewModel.actionMessage?.let { InfoCard(it) }
+        viewModel.actionError?.let { InfoCard(it) }
+
+        if (profile != null && !profile.emailVerified) {
+            OutlinedButton(onClick = viewModel::resendVerification, modifier = Modifier.fillMaxWidth()) {
+                Text("Resend email verification")
+            }
+        }
+        OutlinedButton(onClick = { showPasswordDialog = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("Change password")
+        }
+        OutlinedButton(onClick = { confirmRevoke = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("Sign out everywhere")
+        }
+        OutlinedButton(onClick = { showDeactivateDialog = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("Deactivate account")
+        }
         OutlinedButton(onClick = { confirmSignOut = true }, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.account_sign_out))
         }
+        InfoCard("Your profile is stored securely with your MPA account. Password changes and sign-out actions may require you to sign in again.")
     }
 
     if (confirmSignOut) {
@@ -254,7 +342,7 @@ private fun SignedInContent(account: Account, onSignOut: () -> Unit, modifier: M
             confirmButton = {
                 TextButton(onClick = {
                     confirmSignOut = false
-                    onSignOut()
+                    viewModel.signOut()
                 }) { Text(stringResource(R.string.account_sign_out)) }
             },
             dismissButton = {
@@ -262,6 +350,104 @@ private fun SignedInContent(account: Account, onSignOut: () -> Unit, modifier: M
             }
         )
     }
+
+    if (confirmRevoke) {
+        AlertDialog(
+            onDismissRequest = { confirmRevoke = false },
+            title = { Text("Sign out everywhere?") },
+            text = { Text("This revokes registered refresh tokens on your account. You will need to sign in again on this device.") },
+            confirmButton = {
+                TextButton(onClick = { confirmRevoke = false; viewModel.signOutEverywhere() }) { Text("Continue") }
+            },
+            dismissButton = { TextButton(onClick = { confirmRevoke = false }) { Text("Cancel") } }
+        )
+    }
+
+    if (showPasswordDialog) {
+        PasswordChangeDialog(
+            onDismiss = { showPasswordDialog = false },
+            onSubmit = { current, new, confirm ->
+                showPasswordDialog = false
+                viewModel.changePassword(current, new, confirm)
+            }
+        )
+    }
+
+    if (showDeactivateDialog) {
+        DeactivateAccountDialog(
+            onDismiss = { showDeactivateDialog = false },
+            onSubmit = { password ->
+                showDeactivateDialog = false
+                viewModel.deactivateAccount(password)
+            }
+        )
+    }
+}
+
+@Composable
+private fun ProfileField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(label) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+    )
+}
+
+@Composable
+private fun PasswordChangeDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (String, String, String) -> Unit
+) {
+    var current by rememberSaveable { mutableStateOf("") }
+    var new by rememberSaveable { mutableStateOf("") }
+    var confirm by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Change password") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(current, { current = it }, label = { Text("Current password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                OutlinedTextField(new, { new = it }, label = { Text("New password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                OutlinedTextField(confirm, { confirm = it }, label = { Text("Confirm new password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSubmit(current, new, confirm) }, enabled = current.isNotEmpty() && new.isNotEmpty() && confirm.isNotEmpty()) { Text("Update") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
+
+@Composable
+private fun DeactivateAccountDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit
+) {
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmation by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Deactivate account?") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("You will no longer be able to sign in. Your account data will be retained.")
+                OutlinedTextField(password, { password = it }, label = { Text("Current password") }, visualTransformation = PasswordVisualTransformation(), singleLine = true)
+                OutlinedTextField(confirmation, { confirmation = it }, label = { Text("Type deactivate to confirm") }, singleLine = true)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSubmit(password) }, enabled = password.isNotEmpty() && confirmation == "deactivate") { Text("Deactivate") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
 }
 
 private fun LoginError.messageRes(): Int = when (this) {
