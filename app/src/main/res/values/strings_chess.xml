@@ -1,0 +1,48 @@
+<resources>
+    <string name="chess_title">Chess</string>
+    <string name="chess_intro">Play a friend on this device, or take on the computer. Tap a piece, then tap where it should go.</string>
+    <string name="chess_mode">Play</string>
+    <string name="chess_mode_computer">Against the computer</string>
+    <string name="chess_mode_two">Two players</string>
+    <string name="chess_side">You are</string>
+    <string name="chess_white">White</string>
+    <string name="chess_black">Black</string>
+    <string name="chess_level">Level</string>
+    <string name="chess_level_easy">Easy</string>
+    <string name="chess_level_medium">Medium</string>
+    <string name="chess_level_hard">Hard</string>
+    <string name="chess_new_game">New game</string>
+    <string name="chess_undo">Undo</string>
+    <string name="chess_flip">Flip board</string>
+    <string name="chess_resign">Resign</string>
+    <string name="chess_resign_title">Resign this game?</string>
+    <string name="chess_cancel">Cancel</string>
+
+    <string name="chess_status_checkmate_you">Checkmate. You win!</string>
+    <string name="chess_status_checkmate_cpu">Checkmate. The computer wins.</string>
+    <string name="chess_status_checkmate_color">Checkmate. %1$s wins.</string>
+    <string name="chess_status_resigned_you">%1$s resigned. You win!</string>
+    <string name="chess_status_resigned_cpu">%1$s resigned. The computer wins.</string>
+    <string name="chess_status_resigned_color">%1$s resigned. %2$s wins.</string>
+    <string name="chess_status_stalemate">Stalemate. The game is a draw.</string>
+    <string name="chess_status_repetition">Draw: the same position came up three times.</string>
+    <string name="chess_status_fifty">Draw: fifty moves with no capture or pawn move.</string>
+    <string name="chess_status_material">Draw: neither side has enough pieces left to checkmate.</string>
+    <string name="chess_status_thinking">The computer is thinking…</string>
+    <string name="chess_status_your_move">Your move (%1$s).</string>
+    <string name="chess_status_check_your_move">Check! Your move (%1$s).</string>
+    <string name="chess_status_to_move">%1$s to move.</string>
+    <string name="chess_status_check_to_move">Check! %1$s to move.</string>
+
+    <string name="chess_promote">Promote to</string>
+    <string name="chess_queen">Queen</string>
+    <string name="chess_rook">Rook</string>
+    <string name="chess_bishop">Bishop</string>
+    <string name="chess_knight">Knight</string>
+
+    <string name="chess_moves">Moves</string>
+    <string name="chess_no_moves">No moves yet.</string>
+    <string name="chess_captured_by">Captured by %1$s</string>
+    <string name="chess_board_description">Chess board. %1$s</string>
+    <string name="chess_help">The game is saved on this device, so you can come back to it. Castling, en passant and promotion are all supported; draws are called for stalemate, repetition, the fifty-move rule and too little material.</string>
+</resources>

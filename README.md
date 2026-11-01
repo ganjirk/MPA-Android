@@ -26,9 +26,10 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 12 | `phase12/expense-tracker` | Expense Tracker on the Productivity tab, matching the website: categories, monthly budget, breakdown, CSV export | In review |
 | 15 | `phase15/tic-tac-toe` | Tic Tac Toe on the Games tab, matching the website: vs computer and two players, with results kept on the device | In review |
 | 17 | `phase17/ludo` | Ludo on the Games tab, matching the website: 2 to 4 players, computer opponents, board, dice and a game that is kept on the device | In review |
+| 18 | `phase18/chess` | Chess on the Games tab, matching the website: full rules, three computer levels, two players, undo, resign, move list, saved on the device | In review |
 | 16 | `phase16/sudoku` | Sudoku on the Games tab, matching the website: three difficulties, notes, hints, undo, check, timer and best times, saved on the device | In review |
 
-Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku), Utilities (unit converter and Binary converter), Productivity (local
+Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku, Chess), Utilities (unit converter and Binary converter), Productivity (local
 to-do list and Expense Tracker) and Account (sign in with the MPA website account) are implemented. Tasks and scores
 are stored only on the device; reminders and syncing with the MPA backend are not built yet.
 
@@ -70,6 +71,7 @@ app/src/main/java/com/grk/mpa/app/
     NumberGuessGame.kt, GuessLevel.kt, GuessStats.kt   Number Guess rules, levels and stats
     TicTacToe.kt, TicTacToeStats.kt, TicTacToeCodec.kt   Tic Tac Toe rules, computer player, results and storage format
     Sudoku*.kt   Sudoku generator (unique solutions), rules, hints, and storage format
+    Chess.kt, ChessGame.kt   Chess rules, computer player, move notation and storage format
     Ludo.kt, LudoCodec.kt   Ludo rules, computer players, board layout and storage format
     NumberFormatter.kt
     PongGame.kt     Pong physics and the fixed-step clock
