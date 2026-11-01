@@ -55,7 +55,9 @@ data class RemoteProfile(
     val githubID: String = "",
     val twitID: String = "",
     val instaID: String = "",
-    val fbID: String = ""
+    val fbID: String = "",
+    val message: String? = null,
+    @SerialName("email_verification_sent") val emailVerificationSent: Boolean? = null
 ) {
     val displayName: String
         get() = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { username }
