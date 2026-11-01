@@ -49,4 +49,16 @@ class TicTacToeCodecTest {
         assertTrue(stats.players.isEmpty())
         assertEquals(listOf(LocalMatchEntry(7, "A", "B", MatchWinner.DRAW)), stats.recentMatches)
     }
+
+    @Test
+    fun computerGameTimesRoundTrip() {
+        val stats = TicTacToeStats(
+            recentComputerGames = listOf(
+                ComputerGameEntry(300, GameResult.WIN),
+                ComputerGameEntry(200, GameResult.LOSS),
+                ComputerGameEntry(100, GameResult.DRAW)
+            )
+        )
+        assertEquals(stats, TicTacToeCodec.decode(TicTacToeCodec.encode(stats)))
+    }
 }

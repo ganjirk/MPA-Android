@@ -74,4 +74,13 @@ class TaskCodecTest {
         ).joinToString("\n")
         assertEquals(listOf(Task(1, "Keep me", false, 1)), TaskCodec.decode(text))
     }
+
+    @Test
+    fun completionTimeRoundTripsAndOldRecordsStillDecode() {
+        val tasks = listOf(Task(1, "done", true, 10, completedAtMillis = 99), Task(2, "open", false, 11))
+        val encoded = TaskCodec.encode(tasks)
+        assertEquals(tasks, TaskCodec.decode(encoded))
+        val withoutTime = TaskCodec.encode(listOf(Task(2, "open", false, 11)))
+        assertEquals(withoutTime.split("\t").size, encoded.lines()[1].split("\t").size)
+    }
 }

@@ -7,7 +7,7 @@ import java.net.URLEncoder
  * Stores tasks as tab-separated records with a URL-encoded title.
  *
  * The original four-column format remains readable. New records append the
- * server ID and sync state, preserving all existing device-side task IDs.
+ * server ID and sync state (and, for finished tasks, when they were finished), preserving all existing device-side task IDs.
  * Malformed records are skipped rather than failing the whole list.
  */
 object TaskCodec {
@@ -22,12 +22,13 @@ object TaskCodec {
             URLEncoder.encode(task.title, CHARSET),
             task.remoteId?.toString().orEmpty(),
             task.syncState.name
-        ).joinToString(SEPARATOR.toString())
+        ).plus(if (task.completedAtMillis > 0L) listOf(task.completedAtMillis.toString()) else emptyList())
+            .joinToString(SEPARATOR.toString())
     }
 
     fun decode(text: String): List<Task> = text.lineSequence().mapNotNull { line ->
         val parts = line.split(SEPARATOR)
-        if (parts.size != 4 && parts.size != 6) return@mapNotNull null
+        if (parts.size != 4 && parts.size != 6 && parts.size != 7) return@mapNotNull null
         val id = parts[0].toLongOrNull() ?: return@mapNotNull null
         val done = when (parts[1]) {
             "true" -> true
@@ -39,11 +40,11 @@ object TaskCodec {
             ?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
 
         // Four-column records predate sync support and remain device-local.
-        val remoteId = if (parts.size == 6) {
+        val remoteId = if (parts.size >= 6) {
             if (parts[4].isEmpty()) null else parts[4].toLongOrNull()
                 ?: return@mapNotNull null
         } else null
-        val syncState = if (parts.size == 6) {
+        val syncState = if (parts.size >= 6) {
             runCatching { TaskSyncState.valueOf(parts[5]) }.getOrNull()
                 ?: return@mapNotNull null
         } else TaskSyncState.LOCAL_ONLY
@@ -52,6 +53,7 @@ object TaskCodec {
         if (remoteId != null && (remoteId <= 0L || syncState == TaskSyncState.LOCAL_ONLY || syncState == TaskSyncState.PENDING_CREATE)) {
             return@mapNotNull null
         }
-        Task(id, title, done, created, remoteId, syncState)
+        val completedAt = if (parts.size == 7) parts[6].toLongOrNull()?.takeIf { it > 0L } ?: return@mapNotNull null else 0L
+        Task(id, title, done, created, remoteId, syncState, completedAt)
     }.toList()
 }

@@ -106,7 +106,7 @@ class TasksViewModel(
     }
 
     fun toggle(id: Long) {
-        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.toggle(tasks, id))
+        if (syncStatus != TaskSyncUiStatus.SYNCING) update(TaskOperations.toggle(tasks, id, clock()))
     }
 
     fun delete(id: Long) {

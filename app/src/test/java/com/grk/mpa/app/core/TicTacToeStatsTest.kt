@@ -92,4 +92,13 @@ class TicTacToeStatsTest {
         )
         assertEquals(listOf("cat", "bob", "dan", "amy", "zed"), ordered.map { it.displayName })
     }
+
+    @Test
+    fun computerGamesKeepTheirTimeOnlyWhenOneIsGiven() {
+        val untimed = ops.recordComputerGame(TicTacToeStats(), GameResult.WIN)
+        assertTrue(untimed.recentComputerGames.isEmpty())
+        val timed = ops.recordComputerGame(untimed, GameResult.LOSS, 500)
+        assertEquals(listOf(ComputerGameEntry(500, GameResult.LOSS)), timed.recentComputerGames)
+        assertEquals(2, timed.computer.games)
+    }
 }

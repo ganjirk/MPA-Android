@@ -14,11 +14,12 @@ object TaskOperations {
         return tasks + Task(id = nextId, title = title, isDone = false, createdAtMillis = nowMillis)
     }
 
-    fun toggle(tasks: List<Task>, id: Long): List<Task> =
+    fun toggle(tasks: List<Task>, id: Long, nowMillis: Long = 0L): List<Task> =
         tasks.map { task ->
             if (task.id != id) task
             else task.copy(
                 isDone = !task.isDone,
+                completedAtMillis = if (task.isDone) 0L else nowMillis,
                 syncState = if (task.remoteId != null && task.syncState == TaskSyncState.SYNCED) {
                     TaskSyncState.PENDING_UPDATE
                 } else {

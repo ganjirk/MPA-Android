@@ -49,7 +49,8 @@ fun HomeScreen(
     onSelect: (Destination) -> Unit,
     modifier: Modifier = Modifier,
     onOpenHelp: () -> Unit = {},
-    onOpenContact: () -> Unit = {}
+    onOpenContact: () -> Unit = {},
+    onOpenRecap: () -> Unit = {}
 ) {
     Column(modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(22.dp))
@@ -106,6 +107,7 @@ fun HomeScreen(
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onOpenRecap) { Text(stringResource(R.string.recap_link)) }
                     OutlinedButton(onClick = onOpenHelp) { Text(stringResource(R.string.support_help_link)) }
                     OutlinedButton(onClick = onOpenContact) { Text(stringResource(R.string.support_contact_link)) }
                 }

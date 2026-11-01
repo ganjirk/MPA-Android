@@ -8,7 +8,9 @@ data class Task(
     val createdAtMillis: Long = 0L,
     /** Server-side task ID. Null means this task has never been linked to the account. */
     val remoteId: Long? = null,
-    val syncState: TaskSyncState = TaskSyncState.LOCAL_ONLY
+    val syncState: TaskSyncState = TaskSyncState.LOCAL_ONLY,
+    /** When the task was ticked off on this device; 0 when unknown or not done. Used by "Your week". */
+    val completedAtMillis: Long = 0L
 )
 
 enum class TaskSyncState {

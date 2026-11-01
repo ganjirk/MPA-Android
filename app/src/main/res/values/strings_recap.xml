@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recap_link">Your week</string>
+    <string name="recap_title_current">Your week so far</string>
+    <string name="recap_title_past">Your week</string>
+    <string name="recap_prev">Previous week</string>
+    <string name="recap_next">Next week</string>
+    <string name="recap_empty">Nothing here yet. Finish a task, log an expense or play a game and it will show up.</string>
+    <string name="recap_stat_tasks">Tasks done</string>
+    <string name="recap_stat_spent">Spent</string>
+    <string name="recap_stat_games">Games</string>
+    <string name="recap_stat_active">Active days</string>
+    <string name="recap_stat_active_value">%1$d of 7</string>
+    <string name="recap_highlights">Highlights</string>
+    <string name="recap_hl_tasks_finished">You finished %1$d tasks (%2$d the week before).</string>
+    <string name="recap_hl_tasks_added">You added %1$d tasks.</string>
+    <string name="recap_hl_spent">You spent %1$s.</string>
+    <string name="recap_hl_spent_up">You spent %1$s, %2$d%% more than before.</string>
+    <string name="recap_hl_spent_down">You spent %1$s, %2$d%% less than before.</string>
+    <string name="recap_hl_spent_top">Most of it went on %1$s (%2$s).</string>
+    <string name="recap_hl_games">You played %1$d games and won %2$d.</string>
+    <string name="recap_hl_active">You were active on %1$d of %2$d days.</string>
+    <string name="recap_hl_mood">Your average mood was %1$s %2$s.</string>
+    <string name="recap_by_day">Day by day</string>
+    <string name="recap_money">Where the money went</string>
+    <string name="recap_budget">This month\'s budget</string>
+    <string name="recap_budget_line">%1$s of %2$s</string>
+    <string name="recap_budget_over">Over budget</string>
+    <string name="recap_mood_title">How was today?</string>
+    <string name="recap_mood_saved">Saved for today. Tap another face to change it.</string>
+    <string name="recap_mood_1">Rough</string>
+    <string name="recap_mood_2">Meh</string>
+    <string name="recap_mood_3">Okay</string>
+    <string name="recap_mood_4">Good</string>
+    <string name="recap_mood_5">Great</string>
+    <string name="recap_device_only">Built from what is on this phone only.</string>
+</resources>

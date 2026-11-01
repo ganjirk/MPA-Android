@@ -26,12 +26,17 @@ data class LocalMatchEntry(
     val winner: MatchWinner
 )
 
+/** A finished game against the computer, kept so "Your week" can count it. */
+data class ComputerGameEntry(val playedAtMillis: Long, val result: GameResult)
+
 data class TicTacToeStats(
     /** Your results against the computer. */
     val computer: GameRecord = GameRecord(),
     val players: List<LocalPlayer> = emptyList(),
     /** Newest first. */
-    val recentMatches: List<LocalMatchEntry> = emptyList()
+    val recentMatches: List<LocalMatchEntry> = emptyList(),
+    /** Newest first; only games finished after this list was introduced have an entry. */
+    val recentComputerGames: List<ComputerGameEntry> = emptyList()
 )
 
 enum class NameError { LENGTH, SAME }
@@ -53,8 +58,13 @@ object TicTacToeStatsOperations {
         return if (normalize(x) == normalize(o)) NameError.SAME else null
     }
 
-    fun recordComputerGame(stats: TicTacToeStats, result: GameResult): TicTacToeStats =
-        stats.copy(computer = stats.computer.withResult(result))
+    fun recordComputerGame(stats: TicTacToeStats, result: GameResult, nowMillis: Long = 0L): TicTacToeStats =
+        stats.copy(
+            computer = stats.computer.withResult(result),
+            recentComputerGames = if (nowMillis > 0L) {
+                (listOf(ComputerGameEntry(nowMillis, result)) + stats.recentComputerGames).take(MAX_RECENT_MATCHES)
+            } else stats.recentComputerGames
+        )
 
     /** Saves a finished two-player match. Returns [stats] unchanged if the names are invalid. */
     fun recordLocalMatch(
