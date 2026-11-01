@@ -12,6 +12,7 @@ interface MpaApi {
     suspend fun changePassword(accessToken: String, request: PasswordChangeRequest): ApiResult<AccountActionResponse> = ApiResult.HttpError(501)
     suspend fun signOutEverywhere(accessToken: String): ApiResult<AccountActionResponse> = ApiResult.HttpError(501)
     suspend fun deactivateAccount(accessToken: String, password: String, confirmation: String): ApiResult<AccountActionResponse> = ApiResult.HttpError(501)
+    suspend fun exportData(accessToken: String): ApiResult<String> = ApiResult.HttpError(501)
 
     // Default implementations keep existing test doubles and alternate clients source-compatible.
     suspend fun tasks(accessToken: String): ApiResult<List<RemoteTask>> = ApiResult.HttpError(501)
