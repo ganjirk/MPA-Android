@@ -250,6 +250,8 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
             }
         }
 
+        ProfilePhotoAction(viewModel, profile?.profilePictureUrl, profile?.displayName ?: account.displayName)
+
         if (viewModel.profileLoading) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
