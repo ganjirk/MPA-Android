@@ -142,6 +142,9 @@ class MpaApiClient(
             bearer = accessToken
         ) { json.decodeFromString<AccountActionResponse>(it) }
 
+    override suspend fun exportData(accessToken: String): ApiResult<String> =
+        call("api/v1/account/export/", bearer = accessToken) { it }
+
     override suspend fun tasks(accessToken: String): ApiResult<List<RemoteTask>> =
         call("api/v1/tasks/", bearer = accessToken) { json.decodeFromString<List<RemoteTask>>(it) }
 
