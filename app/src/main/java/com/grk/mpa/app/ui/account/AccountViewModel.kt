@@ -6,6 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grk.mpa.app.data.api.Account
+import com.grk.mpa.app.data.api.ApiResult
+import com.grk.mpa.app.data.api.RemoteProfile
+import com.grk.mpa.app.data.api.UpdateProfileRequest
+import com.grk.mpa.app.data.api.PasswordChangeRequest
 import com.grk.mpa.app.data.auth.AuthRepository
 import com.grk.mpa.app.data.auth.SessionResult
 import com.grk.mpa.app.data.auth.SignInResult
@@ -45,6 +49,16 @@ class AccountViewModel(
         private set
     var error by mutableStateOf<LoginError?>(null)
         private set
+    var profile by mutableStateOf<RemoteProfile?>(null)
+        private set
+    var profileLoading by mutableStateOf(false)
+        private set
+    var profileSaving by mutableStateOf(false)
+        private set
+    var actionMessage by mutableStateOf<String?>(null)
+        private set
+    var actionError by mutableStateOf<String?>(null)
+        private set
 
     val canSubmit: Boolean get() = !isSubmitting && username.isNotBlank() && password.isNotEmpty()
 
@@ -67,7 +81,7 @@ class AccountViewModel(
         state = AccountState.Loading
         scope.launch {
             state = when (val result = repository.restoreSession()) {
-                is SessionResult.Active -> AccountState.SignedIn(result.account)
+                is SessionResult.Active -> AccountState.SignedIn(result.account).also { loadProfile() }
                 SessionResult.SignedOut -> AccountState.SignedOut
                 SessionResult.Offline -> AccountState.Offline
             }
@@ -84,6 +98,7 @@ class AccountViewModel(
                     username = ""
                     password = ""
                     state = AccountState.SignedIn(result.account)
+                    loadProfile()
                 }
                 SignInResult.InvalidCredentials -> error = LoginError.INVALID_CREDENTIALS
                 SignInResult.RateLimited -> error = LoginError.RATE_LIMITED
@@ -91,6 +106,108 @@ class AccountViewModel(
                 SignInResult.Failed -> error = LoginError.OTHER
             }
             isSubmitting = false
+        }
+    }
+
+
+    fun loadProfile() {
+        profileLoading = true
+        scope.launch {
+            when (val result = repository.profile()) {
+                is ApiResult.Success -> profile = result.value
+                else -> actionError = "Could not load profile. Please try again."
+            }
+            profileLoading = false
+        }
+    }
+
+    fun saveProfile(request: UpdateProfileRequest) {
+        if (profileSaving) return
+        profileSaving = true
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.updateProfile(request)) {
+                is ApiResult.Success -> {
+                    profile = result.value
+                    actionMessage = "Profile saved."
+                    state = AccountState.SignedIn(
+                        Account(
+                            id = result.value.id,
+                            username = result.value.username,
+                            firstName = result.value.firstName,
+                            lastName = result.value.lastName,
+                            email = result.value.email,
+                            emailVerified = result.value.emailVerified
+                        )
+                    )
+                }
+                ApiResult.Unauthorized -> actionError = "Your session expired. Please sign in again."
+                ApiResult.NetworkError -> actionError = "Network unavailable. Your changes were not saved."
+                is ApiResult.HttpError -> actionError = "Profile could not be saved. Check the fields and try again."
+                else -> actionError = "Profile could not be saved. Please try again."
+            }
+            profileSaving = false
+        }
+    }
+
+    fun resendVerification() {
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.resendVerification()) {
+                is ApiResult.Success -> actionMessage = result.value.detail
+                ApiResult.NetworkError -> actionError = "Network unavailable. Please try again."
+                else -> actionError = "Could not send the verification email. Please try again."
+            }
+        }
+    }
+
+    fun changePassword(current: String, new: String, confirm: String) {
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.changePassword(PasswordChangeRequest(current, new, confirm))) {
+                is ApiResult.Success -> {
+                    state = AccountState.SignedOut
+                    profile = null
+                    actionMessage = result.value.detail
+                }
+                ApiResult.NetworkError -> actionError = "Network unavailable. Password was not changed."
+                else -> actionError = "Password could not be changed. Check your current password and new password."
+            }
+        }
+    }
+
+    fun signOutEverywhere() {
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.signOutEverywhere()) {
+                is ApiResult.Success -> {
+                    state = AccountState.SignedOut
+                    profile = null
+                    actionMessage = result.value.detail
+                }
+                ApiResult.NetworkError -> actionError = "Network unavailable. Could not revoke other sessions."
+                else -> actionError = "Could not sign out other sessions. Please try again."
+            }
+        }
+    }
+
+    fun deactivateAccount(password: String) {
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.deactivateAccount(password)) {
+                is ApiResult.Success -> {
+                    state = AccountState.SignedOut
+                    profile = null
+                    actionMessage = result.value.detail
+                }
+                ApiResult.NetworkError -> actionError = "Network unavailable. Account was not deactivated."
+                else -> actionError = "Account could not be deactivated. Check your password."
+            }
         }
     }
 
