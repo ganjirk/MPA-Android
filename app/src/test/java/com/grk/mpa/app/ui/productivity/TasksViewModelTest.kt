@@ -2,6 +2,7 @@ package com.grk.mpa.app.ui.productivity
 
 import com.grk.mpa.app.core.Task
 import com.grk.mpa.app.core.TaskFilter
+import com.grk.mpa.app.core.TaskSyncState
 import com.grk.mpa.app.data.TaskRepository
 import com.grk.mpa.app.data.SyncAwareTaskRepository
 import com.grk.mpa.app.data.TaskStoreSnapshot
@@ -12,6 +13,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+
 private class FakeRepository(var stored: List<Task> = emptyList()) : TaskRepository {
     var saveCount = 0
     override suspend fun load(): List<Task> = stored
@@ -20,7 +22,6 @@ private class FakeRepository(var stored: List<Task> = emptyList()) : TaskReposit
         stored = tasks
     }
 }
-
 
 private class FakeSyncRepository(var snapshot: TaskStoreSnapshot) : SyncAwareTaskRepository {
     var saveCount = 0
@@ -98,7 +99,6 @@ class TasksViewModelTest {
         assertEquals(listOf(2L), vm.visibleTasks.map { it.id })
     }
 
-
     @Test
     fun loadsSyncMetadataAlongsideTasks() {
         val initial = TaskStoreSnapshot(
@@ -112,7 +112,6 @@ class TasksViewModelTest {
         assertTrue(vm.isLoaded)
         assertEquals(initial, repo.snapshot)
     }
-
 
     @Test
     fun tasksAddedAfterAccountLinkingAreQueuedForUpload() {
@@ -145,6 +144,102 @@ class TasksViewModelTest {
         vm.delete(local.id)
         assertTrue(vm.tasks.isEmpty())
         assertTrue(repo.snapshot.pendingDeleteRemoteIds.isEmpty())
+    }
+
+    @Test
+    fun legacyTasksCannotBePreparedWithoutLinkedAccount() {
+        val repo = FakeSyncRepository(
+            TaskStoreSnapshot(tasks = listOf(Task(1, "Legacy")))
+        )
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+
+        assertFalse(vm.canMigrateLegacyTasks)
+
+        vm.toggleLegacyTaskSelection(1)
+        vm.prepareSelectedLegacyTasksForUpload()
+
+        assertTrue(vm.selectedLegacyTaskIds.isEmpty())
+        assertEquals(TaskSyncState.LOCAL_ONLY, vm.tasks.single().syncState)
+        assertEquals(TaskSyncState.LOCAL_ONLY, repo.snapshot.tasks.single().syncState)
+        assertEquals(0, repo.saveCount)
+    }
+
+    @Test
+    fun selectingLegacyTaskDoesNotChangeOrSaveIt() {
+        val repo = FakeSyncRepository(
+            TaskStoreSnapshot(
+                tasks = listOf(Task(1, "Legacy")),
+                linkedAccountId = 12
+            )
+        )
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+
+        assertTrue(vm.canMigrateLegacyTasks)
+
+        vm.toggleLegacyTaskSelection(1)
+
+        assertEquals(setOf(1L), vm.selectedLegacyTaskIds)
+        assertEquals(TaskSyncState.LOCAL_ONLY, vm.tasks.single().syncState)
+        assertEquals(0, repo.saveCount)
+    }
+
+    @Test
+    fun preparationQueuesOnlySelectedLegacyTasksWithoutUploading() {
+        val repo = FakeSyncRepository(
+            TaskStoreSnapshot(
+                tasks = listOf(
+                    Task(1, "Selected"),
+                    Task(2, "Not selected")
+                ),
+                linkedAccountId = 12
+            )
+        )
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+
+        vm.toggleLegacyTaskSelection(1)
+        vm.prepareSelectedLegacyTasksForUpload()
+
+        assertEquals(TaskSyncState.PENDING_CREATE, vm.tasks[0].syncState)
+        assertEquals(TaskSyncState.LOCAL_ONLY, vm.tasks[1].syncState)
+
+        assertEquals(vm.tasks, repo.snapshot.tasks)
+        assertTrue(vm.selectedLegacyTaskIds.isEmpty())
+        assertEquals(1, repo.saveCount)
+        assertEquals(TaskSyncState.PENDING_CREATE, repo.snapshot.tasks[0].syncState)
+        assertEquals(TaskSyncState.LOCAL_ONLY, repo.snapshot.tasks[1].syncState)
+    }
+
+    @Test
+    fun remoteAndAlreadyQueuedTasksCannotBeSelectedForLegacyMigration() {
+        val repo = FakeSyncRepository(
+            TaskStoreSnapshot(
+                tasks = listOf(
+                    Task(1, "Legacy"),
+                    Task(
+                        2,
+                        "Remote",
+                        remoteId = 20,
+                        syncState = TaskSyncState.SYNCED
+                    ),
+                    Task(3, "Already queued", syncState = TaskSyncState.PENDING_CREATE)
+                ),
+                linkedAccountId = 12
+            )
+        )
+        val vm = TasksViewModel(repo, CoroutineScope(Dispatchers.Unconfined))
+
+        vm.toggleLegacyTaskSelection(1)
+        vm.toggleLegacyTaskSelection(2)
+        vm.toggleLegacyTaskSelection(3)
+
+        assertEquals(setOf(1L), vm.selectedLegacyTaskIds)
+
+        vm.prepareSelectedLegacyTasksForUpload()
+
+        assertEquals(TaskSyncState.PENDING_CREATE, vm.tasks[0].syncState)
+        assertEquals(TaskSyncState.SYNCED, vm.tasks[1].syncState)
+        assertEquals(TaskSyncState.PENDING_CREATE, vm.tasks[2].syncState)
+        assertEquals(20L, vm.tasks[1].remoteId)
     }
 
     @Test

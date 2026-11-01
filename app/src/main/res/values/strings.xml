@@ -56,6 +56,8 @@
     <string name="tasks_sync_offline">Could not reach MPA. Your local tasks are safe; try again when online.</string>
     <string name="tasks_sync_account_mismatch">These tasks are linked to another MPA account. Sign in to that account to sync them.</string>
     <string name="tasks_sync_failed">Task sync could not be completed. Your pending local changes are retained.</string>
+    <string name="tasks_legacy_migration_explanation">You have %1$d device-only tasks. Select the tasks you want to prepare for your MPA account. They will not upload until you tap Sync.</string>
+    <string name="tasks_legacy_migration_prepare">Prepare selected tasks (%1$d)</string>
     <string name="tool_reminders">Reminders</string>
     <string name="tool_tasks">Tasks</string>
     <string name="tool_expenses">Expenses</string>
