@@ -1,0 +1,48 @@
+<resources>
+    <string name="sudoku_title">Sudoku</string>
+    <string name="sudoku_intro">Fill each row, column and 3×3 box with the numbers 1 to 9. Every puzzle has exactly one solution.</string>
+    <string name="sudoku_difficulty">Difficulty</string>
+    <string name="sudoku_easy">Easy</string>
+    <string name="sudoku_medium">Medium</string>
+    <string name="sudoku_hard">Hard</string>
+    <string name="sudoku_new_puzzle">New puzzle</string>
+    <string name="sudoku_generating">Making a puzzle…</string>
+
+    <string name="sudoku_time">Time %1$s</string>
+    <string name="sudoku_best">Best %1$s</string>
+    <string name="sudoku_no_best">--:--</string>
+    <string name="sudoku_progress">%1$d / 81 filled</string>
+
+    <string name="sudoku_erase">Erase</string>
+    <string name="sudoku_notes_off">Pencil notes: off</string>
+    <string name="sudoku_notes_on">Pencil notes: on</string>
+    <string name="sudoku_undo">Undo</string>
+    <string name="sudoku_check">Check</string>
+    <string name="sudoku_hint">Hint</string>
+    <string name="sudoku_hint_used">Hint (%1$d used)</string>
+    <string name="sudoku_reset">Reset puzzle</string>
+    <string name="sudoku_help">Notes and progress are kept on this phone. The clock pauses when you leave this screen, and best times count only games without hints.</string>
+
+    <string name="sudoku_cell_filled">Row %1$d, column %2$d, %3$d</string>
+    <string name="sudoku_cell_empty">Row %1$d, column %2$d, empty</string>
+
+    <string name="sudoku_status_prompt">Choose an empty cell, then enter a number.</string>
+    <string name="sudoku_status_select_empty">Select an empty cell first.</string>
+    <string name="sudoku_status_conflict">That number conflicts with another cell.</string>
+    <string name="sudoku_status_entered">Number entered.</string>
+    <string name="sudoku_status_cleared">Cell cleared.</string>
+    <string name="sudoku_status_undone">Last move undone.</string>
+    <string name="sudoku_status_reset">Puzzle reset.</string>
+    <string name="sudoku_status_hint">Hint filled the selected cell.</string>
+    <string name="sudoku_status_all_correct">Everything entered so far is correct.</string>
+    <plurals name="sudoku_status_wrong">
+        <item quantity="one">%1$d cell is wrong (marked in red).</item>
+        <item quantity="other">%1$d cells are wrong (marked in red).</item>
+    </plurals>
+    <string name="sudoku_status_complete">Puzzle complete in %1$s — great work!</string>
+    <plurals name="sudoku_status_complete_hints">
+        <item quantity="one">Puzzle complete in %1$s with %2$d hint — great work!</item>
+        <item quantity="other">Puzzle complete in %1$s with %2$d hints — great work!</item>
+    </plurals>
+    <string name="sudoku_status_new_best">New best time!</string>
+</resources>

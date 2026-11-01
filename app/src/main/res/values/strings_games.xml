@@ -3,6 +3,7 @@
     <string name="game_pong">Pong</string>
     <string name="game_tic_tac_toe">Tic Tac Toe</string>
     <string name="game_ludo">Ludo</string>
+    <string name="game_sudoku">Sudoku</string>
 
     <string name="games_title">Games</string>
     <string name="games_subtitle">Choose a game and start playing</string>
@@ -11,6 +12,7 @@
     <string name="game_number_guess_description">Guess the hidden number</string>
     <string name="game_pong_description">Classic two-player arcade</string>
     <string name="game_tic_tac_toe_description">A quick strategy challenge</string>
+    <string name="game_sudoku_description">Number puzzles with notes and hints</string>
     <string name="game_ludo_description">A classic board game for 2–4 players</string>
 
     <string name="pong_title">Pong</string>
