@@ -147,11 +147,11 @@ fun GamesScreen(modifier: Modifier = Modifier) {
                 )
             }
             when (selected) {
-                Game.NUMBER_GUESS -> NumberGuessScreen()
-                Game.PONG -> PongScreen()
-                Game.TIC_TAC_TOE -> TicTacToeScreen()
-                Game.LUDO -> LudoScreen()
-                Game.SUDOKU -> SudokuScreen()
+                Game.NUMBER_GUESS -> NumberGuessScreen(Modifier.weight(1f))
+                Game.PONG -> PongScreen(Modifier.weight(1f))
+                Game.TIC_TAC_TOE -> TicTacToeScreen(Modifier.weight(1f))
+                Game.LUDO -> LudoScreen(Modifier.weight(1f))
+                Game.SUDOKU -> SudokuScreen(Modifier.weight(1f))
             }
         }
     }
