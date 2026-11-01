@@ -50,6 +50,59 @@ class MpaApiClient(
     override suspend fun account(accessToken: String): ApiResult<Account> =
         call("api/v1/account/", bearer = accessToken) { json.decodeFromString<Account>(it) }
 
+    override suspend fun profile(accessToken: String): ApiResult<RemoteProfile> =
+        call("api/v1/account/profile/", bearer = accessToken) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun updateProfile(
+        accessToken: String,
+        request: UpdateProfileRequest
+    ): ApiResult<RemoteProfile> =
+        call(
+            "api/v1/account/profile/",
+            method = "PATCH",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun resendVerification(accessToken: String): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/verify-email/resend/",
+            method = "POST",
+            body = "{}",
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun changePassword(
+        accessToken: String,
+        request: PasswordChangeRequest
+    ): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/password/",
+            method = "POST",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun signOutEverywhere(accessToken: String): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/sign-out-everywhere/",
+            method = "POST",
+            body = "{}",
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun deactivateAccount(
+        accessToken: String,
+        password: String,
+        confirmation: String
+    ): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/deactivate/",
+            method = "POST",
+            body = json.encodeToString(mapOf("password" to password, "confirmation" to confirmation)),
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
     override suspend fun tasks(accessToken: String): ApiResult<List<RemoteTask>> =
         call("api/v1/tasks/", bearer = accessToken) { json.decodeFromString<List<RemoteTask>>(it) }
 
