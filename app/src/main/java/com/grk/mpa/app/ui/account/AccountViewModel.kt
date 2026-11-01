@@ -99,6 +99,7 @@ class AccountViewModel(
                 is SignInResult.Success -> {
                     username = ""
                     password = ""
+                    exportJson = null
                     state = AccountState.SignedIn(result.account)
                     loadProfile()
                 }
@@ -191,6 +192,7 @@ class AccountViewModel(
                 is ApiResult.Success -> {
                     state = AccountState.SignedOut
                     profile = null
+                    exportJson = null
                     actionMessage = result.value.detail
                 }
                 ApiResult.NetworkError -> actionError = "Network unavailable. Password was not changed."
@@ -251,6 +253,10 @@ class AccountViewModel(
     fun signOut() {
         scope.launch {
             repository.signOut()
+            profile = null
+            exportJson = null
+            actionMessage = null
+            actionError = null
             state = AccountState.SignedOut
         }
     }
