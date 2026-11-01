@@ -28,9 +28,10 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 17 | `phase17/ludo` | Ludo on the Games tab, matching the website: 2 to 4 players, computer opponents, board, dice and a game that is kept on the device | In review |
 | 18 | `phase18/chess` | Chess on the Games tab, matching the website: full rules, three computer levels, two players, undo, resign, move list, saved on the device | In review |
 | 19 | `phase19/help-contact` | Help & tips and Contact us, matching the website: quick-add examples and tips, FAQ, contact form with reference ID, and the messages sent from this device | In review |
+| 20 | `phase20/match-cards` | Match Cards on the Games tab, matching the website: three sizes, moves and timer, best results and history on the device | In review |
 | 16 | `phase16/sudoku` | Sudoku on the Games tab, matching the website: three difficulties, notes, hints, undo, check, timer and best times, saved on the device | In review |
 
-Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku, Chess), Utilities (unit converter and Binary converter), Productivity (local
+Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku, Chess, Match Cards), Utilities (unit converter and Binary converter), Productivity (local
 to-do list and Expense Tracker) and Account (sign in with the MPA website account) are implemented. Tasks and scores
 are stored only on the device; reminders and syncing with the MPA backend are not built yet.
 
@@ -73,6 +74,7 @@ app/src/main/java/com/grk/mpa/app/
     TicTacToe.kt, TicTacToeStats.kt, TicTacToeCodec.kt   Tic Tac Toe rules, computer player, results and storage format
     Sudoku*.kt   Sudoku generator (unique solutions), rules, hints, and storage format
     Contact.kt, ContactHistory.kt   Contact form rules and the list of messages sent from this device
+    MatchCards.kt   Match Cards deck, rules, results history and storage format
     Chess.kt, ChessGame.kt   Chess rules, computer player, move notation and storage format
     Ludo.kt, LudoCodec.kt   Ludo rules, computer players, board layout and storage format
     NumberFormatter.kt

@@ -3,6 +3,7 @@
     <string name="game_pong">Pong</string>
     <string name="game_tic_tac_toe">Tic Tac Toe</string>
     <string name="game_ludo">Ludo</string>
+    <string name="game_match_cards">Match Cards</string>
     <string name="game_chess">Chess</string>
     <string name="game_sudoku">Sudoku</string>
 
@@ -14,6 +15,7 @@
     <string name="game_pong_description">Classic two-player arcade</string>
     <string name="game_tic_tac_toe_description">A quick strategy challenge</string>
     <string name="game_sudoku_description">Number puzzles with notes and hints</string>
+    <string name="game_match_cards_description">Flip cards and find every pair</string>
     <string name="game_chess_description">Classic strategy against the computer</string>
     <string name="game_ludo_description">A classic board game for 2–4 players</string>
 
