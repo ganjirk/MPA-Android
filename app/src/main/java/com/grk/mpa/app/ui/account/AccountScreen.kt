@@ -45,7 +45,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.grk.mpa.app.R
 import com.grk.mpa.app.data.api.Account
-import com.grk.mpa.app.data.api.RemoteProfile
 import com.grk.mpa.app.data.api.UpdateProfileRequest
 import com.grk.mpa.app.data.api.ApiConfig
 import com.grk.mpa.app.data.api.MpaApiClient
