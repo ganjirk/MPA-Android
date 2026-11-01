@@ -325,6 +325,7 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
         OutlinedButton(onClick = { confirmRevoke = true }, modifier = Modifier.fillMaxWidth()) {
             Text("Sign out everywhere")
         }
+        DataExportAction(viewModel)
         OutlinedButton(onClick = { showDeactivateDialog = true }, modifier = Modifier.fillMaxWidth()) {
             Text("Deactivate account")
         }
