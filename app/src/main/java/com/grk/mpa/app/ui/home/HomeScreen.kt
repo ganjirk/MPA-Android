@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +45,12 @@ private fun Destination.featureSubtitleRes(): Int = when (this) {
 }
 
 @Composable
-fun HomeScreen(onSelect: (Destination) -> Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    onSelect: (Destination) -> Unit,
+    modifier: Modifier = Modifier,
+    onOpenHelp: () -> Unit = {},
+    onOpenContact: () -> Unit = {}
+) {
     Column(modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(22.dp))
         Surface(
@@ -95,6 +103,12 @@ fun HomeScreen(onSelect: (Destination) -> Unit, modifier: Modifier = Modifier) {
         ) {
             items(Destination.sections) { destination ->
                 FeatureCard(destination = destination, onClick = { onSelect(destination) })
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onOpenHelp) { Text(stringResource(R.string.support_help_link)) }
+                    OutlinedButton(onClick = onOpenContact) { Text(stringResource(R.string.support_contact_link)) }
+                }
             }
         }
     }

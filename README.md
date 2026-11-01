@@ -27,6 +27,7 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 15 | `phase15/tic-tac-toe` | Tic Tac Toe on the Games tab, matching the website: vs computer and two players, with results kept on the device | In review |
 | 17 | `phase17/ludo` | Ludo on the Games tab, matching the website: 2 to 4 players, computer opponents, board, dice and a game that is kept on the device | In review |
 | 18 | `phase18/chess` | Chess on the Games tab, matching the website: full rules, three computer levels, two players, undo, resign, move list, saved on the device | In review |
+| 19 | `phase19/help-contact` | Help & tips and Contact us, matching the website: quick-add examples and tips, FAQ, contact form with reference ID, and the messages sent from this device | In review |
 | 16 | `phase16/sudoku` | Sudoku on the Games tab, matching the website: three difficulties, notes, hints, undo, check, timer and best times, saved on the device | In review |
 
 Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku, Chess), Utilities (unit converter and Binary converter), Productivity (local
@@ -71,6 +72,7 @@ app/src/main/java/com/grk/mpa/app/
     NumberGuessGame.kt, GuessLevel.kt, GuessStats.kt   Number Guess rules, levels and stats
     TicTacToe.kt, TicTacToeStats.kt, TicTacToeCodec.kt   Tic Tac Toe rules, computer player, results and storage format
     Sudoku*.kt   Sudoku generator (unique solutions), rules, hints, and storage format
+    Contact.kt, ContactHistory.kt   Contact form rules and the list of messages sent from this device
     Chess.kt, ChessGame.kt   Chess rules, computer player, move notation and storage format
     Ludo.kt, LudoCodec.kt   Ludo rules, computer players, board layout and storage format
     NumberFormatter.kt

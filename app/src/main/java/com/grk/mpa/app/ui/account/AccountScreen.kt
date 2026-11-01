@@ -60,16 +60,29 @@ private val accountViewModelFactory = viewModelFactory {
 
 @Composable
 fun AccountScreen(
+    onOpenHelp: () -> Unit = {},
+    onOpenContact: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: AccountViewModel = viewModel(factory = accountViewModelFactory)
 ) {
-    when (val state = viewModel.state) {
-        AccountState.Loading -> Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    Column(modifier.fillMaxSize()) {
+        Box(Modifier.weight(1f)) {
+            when (val state = viewModel.state) {
+                AccountState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                AccountState.SignedOut -> SignedOutContent(viewModel, Modifier)
+                AccountState.Offline -> OfflineContent(viewModel, Modifier)
+                is AccountState.SignedIn -> SignedInContent(state.account, viewModel::signOut, Modifier)
+            }
         }
-        AccountState.SignedOut -> SignedOutContent(viewModel, modifier)
-        AccountState.Offline -> OfflineContent(viewModel, modifier)
-        is AccountState.SignedIn -> SignedInContent(state.account, viewModel::signOut, modifier)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = MpaDimensions.screenHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(MpaDimensions.compactSpacing)
+        ) {
+            TextButton(onClick = onOpenHelp) { Text(stringResource(R.string.support_help_link)) }
+            TextButton(onClick = onOpenContact) { Text(stringResource(R.string.support_contact_link)) }
+        }
     }
 }
 
