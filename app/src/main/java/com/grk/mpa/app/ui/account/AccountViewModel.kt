@@ -151,6 +151,24 @@ class AccountViewModel(
         }
     }
 
+
+    fun uploadProfilePicture(bytes: ByteArray, mimeType: String, fileName: String) {
+        profileSaving = true
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.uploadProfilePicture(bytes, mimeType, fileName)) {
+                is ApiResult.Success -> {
+                    profile = result.value
+                    actionMessage = "Profile picture updated."
+                }
+                ApiResult.NetworkError -> actionError = "Network unavailable. Picture was not uploaded."
+                else -> actionError = "Picture could not be uploaded. Choose a JPG, PNG or WebP under 1 MB."
+            }
+            profileSaving = false
+        }
+    }
+
     fun resendVerification() {
         actionMessage = null
         actionError = null
