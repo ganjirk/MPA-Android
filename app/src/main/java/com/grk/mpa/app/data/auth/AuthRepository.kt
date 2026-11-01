@@ -3,6 +3,11 @@ package com.grk.mpa.app.data.auth
 import com.grk.mpa.app.data.api.Account
 import com.grk.mpa.app.data.api.ApiResult
 import com.grk.mpa.app.data.api.MpaApi
+import com.grk.mpa.app.data.api.ApiResult
+import com.grk.mpa.app.data.api.RemoteProfile
+import com.grk.mpa.app.data.api.UpdateProfileRequest
+import com.grk.mpa.app.data.api.AccountActionResponse
+import com.grk.mpa.app.data.api.PasswordChangeRequest
 
 sealed interface SignInResult {
     data class Success(val account: Account) : SignInResult
@@ -58,7 +63,57 @@ class AuthRepository(private val api: MpaApi, private val storage: AuthStorage) 
         }
     }
 
-    /** Forgets the tokens on this device. The server has no endpoint to revoke them yet; they expire on their own. */
+    suspend fun profile(): ApiResult<RemoteProfile> = withSession { api.profile(it) }
+
+    suspend fun updateProfile(request: UpdateProfileRequest): ApiResult<RemoteProfile> =
+        withSession { api.updateProfile(it, request) }
+
+    suspend fun resendVerification(): ApiResult<AccountActionResponse> =
+        withSession { api.resendVerification(it) }
+
+    suspend fun changePassword(request: PasswordChangeRequest): ApiResult<AccountActionResponse> {
+        val result = withSession { api.changePassword(it, request) }
+        if (result is ApiResult.Success && result.value.reauthenticate) storage.clear()
+        return result
+    }
+
+    suspend fun signOutEverywhere(): ApiResult<AccountActionResponse> {
+        val result = withSession { api.signOutEverywhere(it) }
+        if (result is ApiResult.Success) storage.clear()
+        return result
+    }
+
+    suspend fun deactivateAccount(password: String): ApiResult<AccountActionResponse> {
+        val result = withSession { api.deactivateAccount(it, password, "deactivate") }
+        if (result is ApiResult.Success) storage.clear()
+        return result
+    }
+
+    /** Refresh once and retry an authenticated operation; clear tokens only on a confirmed 401. */
+    private suspend fun <T> withSession(operation: suspend (String) -> ApiResult<T>): ApiResult<T> {
+        val tokens = storage.load() ?: return ApiResult.Unauthorized
+        val first = operation(tokens.access)
+        if (first != ApiResult.Unauthorized) return first
+        return when (val refreshed = api.refresh(tokens.refresh)) {
+            is ApiResult.Success -> {
+                val updated = StoredTokens(refreshed.value.access, refreshed.value.refresh ?: tokens.refresh)
+                storage.save(updated)
+                val retry = operation(updated.access)
+                if (retry == ApiResult.Unauthorized) storage.clear()
+                retry
+            }
+            ApiResult.Unauthorized -> {
+                storage.clear()
+                ApiResult.Unauthorized
+            }
+            ApiResult.RateLimited -> ApiResult.RateLimited
+            ApiResult.NetworkError -> ApiResult.NetworkError
+            ApiResult.BadResponse -> ApiResult.BadResponse
+            is ApiResult.HttpError -> refreshed
+        }
+    }
+
+    /** Forgets the tokens on this device. The server's sign-out-everywhere action is separate. */
     suspend fun signOut() = storage.clear()
 
     private suspend fun fetchAccount(tokens: StoredTokens): ApiResult<Account> {
