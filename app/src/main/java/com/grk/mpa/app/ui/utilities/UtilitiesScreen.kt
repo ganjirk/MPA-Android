@@ -1,7 +1,16 @@
 package com.grk.mpa.app.ui.utilities
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -90,11 +99,12 @@ fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
         )
         UnitCategories.all.forEach { category ->
             val isExpanded = category.id in expanded
+            val style = UnitCategoryStyles.of(category.id)
+            val dark = isSystemInDarkTheme()
+            val accent = style.accent(dark)
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                colors = CardDefaults.cardColors(containerColor = style.tint(dark))
             ) {
                 Row(
                     modifier = Modifier
@@ -103,18 +113,25 @@ fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
                             val next = if (isExpanded) expanded - category.id else expanded + category.id
                             expandedIds = next.joinToString(",")
                         }
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        category.label,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(
+                            Modifier.size(38.dp).clip(CircleShape).background(accent.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) { Text(style.emoji, style = MaterialTheme.typography.titleMedium) }
+                        Text(
+                            category.label,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                     Text(
                         if (isExpanded) "⌃" else "⌄",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = accent
                     )
                 }
                 if (isExpanded) {
@@ -126,6 +143,9 @@ fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
                             val isSource = viewModel.isSource(category, unit)
                             val invalid = isSource && viewModel.isInvalid(category)
                             val belowMinimum = isSource && viewModel.isBelowMinimum(category, unit)
+                            val surface = MaterialTheme.colorScheme.surface
+                            // The field being typed in gets a stronger tint; results stay on plain surface.
+                            val fieldColor = if (isSource) accent.copy(alpha = 0.18f).compositeOver(surface) else surface
                             OutlinedTextField(
                                 value = viewModel.displayValue(category, unit),
                                 onValueChange = { viewModel.onValueChange(category, unit, it) },
@@ -133,6 +153,13 @@ fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
                                 label = { Text(unit.label) },
                                 singleLine = true,
                                 isError = invalid,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = fieldColor,
+                                    unfocusedContainerColor = fieldColor,
+                                    focusedBorderColor = accent,
+                                    unfocusedBorderColor = if (isSource) accent else accent.copy(alpha = 0.35f),
+                                    focusedLabelColor = accent
+                                ),
                                 supportingText = when {
                                     invalid -> ({ Text(stringResource(R.string.error_invalid_number)) })
                                     belowMinimum -> ({
