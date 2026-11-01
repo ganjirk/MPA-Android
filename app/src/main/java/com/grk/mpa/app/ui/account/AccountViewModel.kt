@@ -209,6 +209,7 @@ class AccountViewModel(
                 is ApiResult.Success -> {
                     state = AccountState.SignedOut
                     profile = null
+                    exportJson = null
                     actionMessage = result.value.detail
                 }
                 ApiResult.NetworkError -> actionError = "Network unavailable. Could not revoke other sessions."
@@ -242,6 +243,7 @@ class AccountViewModel(
                 is ApiResult.Success -> {
                     state = AccountState.SignedOut
                     profile = null
+                    exportJson = null
                     actionMessage = result.value.detail
                 }
                 ApiResult.NetworkError -> actionError = "Network unavailable. Account was not deactivated."
