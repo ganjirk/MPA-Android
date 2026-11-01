@@ -130,10 +130,10 @@ class WeekRecapTest {
             )
         )
         val recap = build(input)
-        assertEquals(5, recap.games)
+        assertEquals(6, recap.games)
         assertEquals(2, recap.wins)
         assertFalse(recap.isEmpty)
-        assertEquals(RecapHighlight.Games(5, 2), recap.highlights.filterIsInstance<RecapHighlight.Games>().single())
+        assertEquals(RecapHighlight.Games(6, 2), recap.highlights.filterIsInstance<RecapHighlight.Games>().single())
     }
 
     @Test
