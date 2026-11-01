@@ -1,6 +1,6 @@
 # MPA Android
 
-Native Android client for **MPA (Main Portal Application)**, built with Kotlin,
+Native Android client for **MPA (Multi Portal Application)**, built with Kotlin,
 Jetpack Compose and Material 3.
 
 This repository is being rebuilt from an older collection of Python/Kivy and Django
