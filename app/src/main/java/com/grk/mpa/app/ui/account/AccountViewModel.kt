@@ -59,6 +59,8 @@ class AccountViewModel(
         private set
     var actionError by mutableStateOf<String?>(null)
         private set
+    var exportJson by mutableStateOf<String?>(null)
+        private set
 
     val canSubmit: Boolean get() = !isSubmitting && username.isNotBlank() && password.isNotEmpty()
 
@@ -209,6 +211,23 @@ class AccountViewModel(
                 }
                 ApiResult.NetworkError -> actionError = "Network unavailable. Could not revoke other sessions."
                 else -> actionError = "Could not sign out other sessions. Please try again."
+            }
+        }
+    }
+
+
+    fun prepareDataExport() {
+        actionMessage = null
+        actionError = null
+        exportJson = null
+        scope.launch {
+            when (val result = repository.exportData()) {
+                is ApiResult.Success -> {
+                    exportJson = result.value
+                    actionMessage = "Your account export is ready to save."
+                }
+                ApiResult.NetworkError -> actionError = "Network unavailable. Export could not be prepared."
+                else -> actionError = "Could not prepare your data export. Please try again."
             }
         }
     }
