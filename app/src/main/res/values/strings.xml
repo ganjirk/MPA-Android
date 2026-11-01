@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MPA Android</string>
+    <string name="app_name">Multi Portal Application</string>
     <string name="nav_home">Home</string>
     <string name="nav_games">Games</string>
     <string name="nav_utilities">Utilities</string>
@@ -16,7 +16,7 @@
     <string name="feature_account">Profile and settings</string>
     <string name="home_brand">MPA</string>
     <string name="home_headline">Everything you need,\nin one place.</string>
-    <string name="home_welcome">Welcome to your Main Portal Application.</string>
+    <string name="home_welcome">Welcome to your Multi Portal Application.</string>
     <string name="home_explore_title">Explore MPA</string>
     <string name="home_explore_subtitle">Choose a section to get started.</string>
     <string name="guess_title">Number Guess</string>
