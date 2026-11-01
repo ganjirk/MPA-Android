@@ -42,6 +42,11 @@ internal fun ProfilePhotoAction(viewModel: AccountViewModel, photoUrl: String?, 
         OutlinedButton(onClick = { picker.launch("image/*") }, enabled = !viewModel.profileSaving) {
             Text("Change profile picture")
         }
+        if (photoUrl != null) {
+            OutlinedButton(onClick = viewModel::removeProfilePicture, enabled = !viewModel.profileSaving) {
+                Text("Remove profile picture")
+            }
+        }
         Text("JPG, PNG or WebP · maximum 1 MB")
     }
 }
