@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -216,6 +217,7 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
     var address by remember(profile) { mutableStateOf(profile?.address.orEmpty()) }
     var designation by remember(profile) { mutableStateOf(profile?.designation.orEmpty()) }
     var sex by remember(profile) { mutableStateOf(profile?.sex.orEmpty()) }
+    var emailReplies by remember(profile) { mutableStateOf(profile?.emailReplies ?: true) }
     var website by remember(profile) { mutableStateOf(profile?.website.orEmpty()) }
     var github by remember(profile) { mutableStateOf(profile?.githubID.orEmpty()) }
     var twitter by remember(profile) { mutableStateOf(profile?.twitID.orEmpty()) }
@@ -287,6 +289,10 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
             ProfileField("Address", address, { address = it })
             ProfileField("Designation", designation, { designation = it })
             ProfileField("Sex (M, F, O or blank)", sex, { sex = it })
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("Email replies and notifications")
+                Switch(checked = emailReplies, onCheckedChange = { emailReplies = it })
+            }
             SectionTitle("Online profiles")
             ProfileField("Website", website, { website = it })
             ProfileField("GitHub", github, { github = it })
@@ -298,7 +304,7 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
                     viewModel.saveProfile(
                         UpdateProfileRequest(
                             firstName, lastName, email, phone, mobile, address, designation,
-                            sex.trim().uppercase(), website, github, twitter, instagram, facebook
+                            sex.trim().uppercase(), emailReplies, website, github, twitter, instagram, facebook
                         )
                     )
                 },
