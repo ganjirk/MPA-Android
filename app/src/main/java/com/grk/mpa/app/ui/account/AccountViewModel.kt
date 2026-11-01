@@ -172,6 +172,24 @@ class AccountViewModel(
         }
     }
 
+
+    fun removeProfilePicture() {
+        profileSaving = true
+        actionMessage = null
+        actionError = null
+        scope.launch {
+            when (val result = repository.removeProfilePicture()) {
+                is ApiResult.Success -> {
+                    profile = result.value
+                    actionMessage = "Profile picture removed."
+                }
+                ApiResult.NetworkError -> actionError = "Network unavailable. Picture was not removed."
+                else -> actionError = "Could not remove the profile picture. Please try again."
+            }
+            profileSaving = false
+        }
+    }
+
     fun resendVerification() {
         actionMessage = null
         actionError = null
