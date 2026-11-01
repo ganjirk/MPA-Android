@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -63,6 +64,44 @@ class MpaApiClient(
             body = json.encodeToString(request),
             bearer = accessToken
         ) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun uploadProfilePicture(
+        accessToken: String,
+        bytes: ByteArray,
+        mimeType: String,
+        fileName: String
+    ): ApiResult<RemoteProfile> = withContext(Dispatchers.IO) {
+        try {
+            val mediaType = mimeType.toMediaType()
+            val body = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("profile_picture", fileName, bytes.toRequestBody(mediaType))
+                .build()
+            val request = Request.Builder()
+                .url(base + "api/v1/account/profile/")
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer $accessToken")
+                .patch(body)
+                .build()
+            http.newCall(request).execute().use { response ->
+                val text = response.body?.string().orEmpty()
+                when {
+                    response.code in 200..299 -> try {
+                        ApiResult.Success(json.decodeFromString<RemoteProfile>(text))
+                    } catch (e: SerializationException) {
+                        ApiResult.BadResponse
+                    } catch (e: IllegalArgumentException) {
+                        ApiResult.BadResponse
+                    }
+                    response.code == 401 -> ApiResult.Unauthorized
+                    response.code == 429 -> ApiResult.RateLimited
+                    else -> ApiResult.HttpError(response.code)
+                }
+            }
+        } catch (e: IOException) {
+            ApiResult.NetworkError
+        }
+    }
 
     override suspend fun resendVerification(accessToken: String): ApiResult<AccountActionResponse> =
         call(
