@@ -133,7 +133,7 @@ class AccountViewModel(
             when (val result = repository.updateProfile(request)) {
                 is ApiResult.Success -> {
                     profile = result.value
-                    actionMessage = "Profile saved."
+                    actionMessage = result.value.message ?: "Profile saved."
                     state = AccountState.SignedIn(
                         Account(
                             id = result.value.id,
