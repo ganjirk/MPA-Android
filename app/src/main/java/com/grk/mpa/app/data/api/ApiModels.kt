@@ -33,6 +33,69 @@ data class Account(
 }
 
 
+
+/** Complete editable profile returned by GET/PATCH /api/v1/account/profile/. */
+@Serializable
+data class RemoteProfile(
+    val id: Long,
+    val username: String,
+    @SerialName("first_name") val firstName: String = "",
+    @SerialName("last_name") val lastName: String = "",
+    val email: String = "",
+    @SerialName("email_verified") val emailVerified: Boolean = false,
+    @SerialName("date_joined") val dateJoined: String = "",
+    val phone: String = "",
+    val mobile: String = "",
+    val address: String = "",
+    val designation: String = "",
+    val sex: String = "",
+    @SerialName("email_replies") val emailReplies: Boolean = true,
+    @SerialName("profile_picture_url") val profilePictureUrl: String? = null,
+    val website: String = "",
+    val githubID: String = "",
+    val twitID: String = "",
+    val instaID: String = "",
+    val fbID: String = "",
+    val message: String? = null,
+    @SerialName("email_verification_sent") val emailVerificationSent: Boolean? = null
+) {
+    val displayName: String
+        get() = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { username }
+}
+
+/** Full form payload; all fields are sent so server validation matches the website profile form. */
+@Serializable
+data class UpdateProfileRequest(
+    @SerialName("first_name") val firstName: String,
+    @SerialName("last_name") val lastName: String,
+    val email: String,
+    val phone: String,
+    val mobile: String,
+    val address: String,
+    val designation: String,
+    val sex: String,
+    @SerialName("email_replies") val emailReplies: Boolean,
+    val website: String,
+    val githubID: String,
+    val twitID: String,
+    val instaID: String,
+    val fbID: String
+)
+
+@Serializable
+data class AccountActionResponse(
+    val detail: String = "",
+    val reauthenticate: Boolean = false,
+    @SerialName("email_verification_sent") val emailVerificationSent: Boolean? = null
+)
+
+@Serializable
+data class PasswordChangeRequest(
+    @SerialName("current_password") val currentPassword: String,
+    @SerialName("new_password") val newPassword: String,
+    @SerialName("confirm_password") val confirmPassword: String
+)
+
 /** One task returned by the authenticated mobile Tasks API. */
 @Serializable
 data class RemoteTask(

@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,6 +50,108 @@ class MpaApiClient(
 
     override suspend fun account(accessToken: String): ApiResult<Account> =
         call("api/v1/account/", bearer = accessToken) { json.decodeFromString<Account>(it) }
+
+    override suspend fun profile(accessToken: String): ApiResult<RemoteProfile> =
+        call("api/v1/account/profile/", bearer = accessToken) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun updateProfile(
+        accessToken: String,
+        request: UpdateProfileRequest
+    ): ApiResult<RemoteProfile> =
+        call(
+            "api/v1/account/profile/",
+            method = "PATCH",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun uploadProfilePicture(
+        accessToken: String,
+        bytes: ByteArray,
+        mimeType: String,
+        fileName: String
+    ): ApiResult<RemoteProfile> = withContext(Dispatchers.IO) {
+        try {
+            val mediaType = mimeType.toMediaType()
+            val body = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("profile_picture", fileName, bytes.toRequestBody(mediaType))
+                .build()
+            val request = Request.Builder()
+                .url(base + "api/v1/account/profile/")
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer $accessToken")
+                .patch(body)
+                .build()
+            http.newCall(request).execute().use { response ->
+                val text = response.body?.string().orEmpty()
+                when {
+                    response.code in 200..299 -> try {
+                        ApiResult.Success(json.decodeFromString<RemoteProfile>(text))
+                    } catch (e: SerializationException) {
+                        ApiResult.BadResponse
+                    } catch (e: IllegalArgumentException) {
+                        ApiResult.BadResponse
+                    }
+                    response.code == 401 -> ApiResult.Unauthorized
+                    response.code == 429 -> ApiResult.RateLimited
+                    else -> ApiResult.HttpError(response.code)
+                }
+            }
+        } catch (e: IOException) {
+            ApiResult.NetworkError
+        }
+    }
+
+    override suspend fun removeProfilePicture(accessToken: String): ApiResult<RemoteProfile> =
+        call(
+            "api/v1/account/profile/",
+            method = "PATCH",
+            body = json.encodeToString(mapOf("remove_profile_picture" to true)),
+            bearer = accessToken
+        ) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun resendVerification(accessToken: String): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/verify-email/resend/",
+            method = "POST",
+            body = "{}",
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun changePassword(
+        accessToken: String,
+        request: PasswordChangeRequest
+    ): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/password/",
+            method = "POST",
+            body = json.encodeToString(request),
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun signOutEverywhere(accessToken: String): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/sign-out-everywhere/",
+            method = "POST",
+            body = "{}",
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun deactivateAccount(
+        accessToken: String,
+        password: String,
+        confirmation: String
+    ): ApiResult<AccountActionResponse> =
+        call(
+            "api/v1/account/deactivate/",
+            method = "POST",
+            body = json.encodeToString(mapOf("password" to password, "confirmation" to confirmation)),
+            bearer = accessToken
+        ) { json.decodeFromString<AccountActionResponse>(it) }
+
+    override suspend fun exportData(accessToken: String): ApiResult<String> =
+        call("api/v1/account/export/", bearer = accessToken) { it }
 
     override suspend fun tasks(accessToken: String): ApiResult<List<RemoteTask>> =
         call("api/v1/tasks/", bearer = accessToken) { json.decodeFromString<List<RemoteTask>>(it) }
