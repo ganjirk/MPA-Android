@@ -103,7 +103,8 @@ class TicTacToeViewModel(
                     outcome.isDraw -> GameResult.DRAW
                     outcome.winner == Mark.X -> GameResult.WIN
                     else -> GameResult.LOSS
-                }
+                },
+                clock()
             )
             TicTacToeMode.LOCAL -> TicTacToeStatsOperations.recordLocalMatch(
                 stats,

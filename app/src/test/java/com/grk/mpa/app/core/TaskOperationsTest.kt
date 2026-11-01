@@ -104,4 +104,13 @@ class TaskOperationsTest {
         assertEquals(listOf(2L), TaskOperations.filter(sample, TaskFilter.DONE).map { it.id })
         assertEquals(2, TaskOperations.activeCount(sample))
     }
+
+    @Test
+    fun togglingRecordsAndClearsTheCompletionTime() {
+        val tasks = listOf(Task(1, "a", false, 5))
+        val done = TaskOperations.toggle(tasks, 1, 777)
+        assertEquals(777L, done.single().completedAtMillis)
+        val undone = TaskOperations.toggle(done, 1, 999)
+        assertEquals(0L, undone.single().completedAtMillis)
+    }
 }

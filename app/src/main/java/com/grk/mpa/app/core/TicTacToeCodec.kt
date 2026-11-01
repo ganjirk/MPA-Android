@@ -8,6 +8,7 @@ import java.net.URLEncoder
  * - `C games wins losses draws`
  * - `P normalizedName(url-encoded) displayName(url-encoded) games wins losses draws`
  * - `M playedAtMillis playerX(url-encoded) playerO(url-encoded) X|O|D`
+ * - `G playedAtMillis W|L|D` (a finished game against the computer)
  * Lines that cannot be read are skipped instead of failing the whole file.
  */
 object TicTacToeCodec {
@@ -32,6 +33,14 @@ object TicTacToeCodec {
             }
             lines += listOf("M", m.playedAtMillis, enc(m.playerX), enc(m.playerO), code).joinToString(TAB)
         }
+        stats.recentComputerGames.forEach { g ->
+            val code = when (g.result) {
+                GameResult.WIN -> "W"
+                GameResult.LOSS -> "L"
+                GameResult.DRAW -> "D"
+            }
+            lines += listOf("G", g.playedAtMillis, code).joinToString(TAB)
+        }
         return lines.joinToString("\n")
     }
 
@@ -39,15 +48,17 @@ object TicTacToeCodec {
         var computer = GameRecord()
         val players = mutableListOf<LocalPlayer>()
         val matches = mutableListOf<LocalMatchEntry>()
+        val games = mutableListOf<ComputerGameEntry>()
         for (line in text.lineSequence()) {
             val parts = line.split(TAB)
             when (parts.firstOrNull()) {
                 "C" -> parseRecord(parts.drop(1))?.let { computer = it }
                 "P" -> parsePlayer(parts)?.let(players::add)
                 "M" -> parseMatch(parts)?.let(matches::add)
+                "G" -> parseComputerGame(parts)?.let(games::add)
             }
         }
-        return TicTacToeStats(computer, players, matches)
+        return TicTacToeStats(computer, players, matches, games)
     }
 
     private fun parseRecord(numbers: List<String>): GameRecord? {
@@ -62,6 +73,18 @@ object TicTacToeCodec {
         val display = dec(parts[2])?.takeIf { it.isNotBlank() } ?: return null
         val record = parseRecord(parts.drop(3)) ?: return null
         return LocalPlayer(normalized, display, record)
+    }
+
+    private fun parseComputerGame(parts: List<String>): ComputerGameEntry? {
+        if (parts.size != 3) return null
+        val at = parts[1].toLongOrNull()?.takeIf { it > 0L } ?: return null
+        val result = when (parts[2]) {
+            "W" -> GameResult.WIN
+            "L" -> GameResult.LOSS
+            "D" -> GameResult.DRAW
+            else -> return null
+        }
+        return ComputerGameEntry(at, result)
     }
 
     private fun parseMatch(parts: List<String>): LocalMatchEntry? {

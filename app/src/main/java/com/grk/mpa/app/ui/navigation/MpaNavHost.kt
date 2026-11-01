@@ -9,6 +9,7 @@ import com.grk.mpa.app.ui.account.AccountScreen
 import com.grk.mpa.app.ui.games.GamesScreen
 import com.grk.mpa.app.ui.home.HomeScreen
 import com.grk.mpa.app.ui.productivity.ProductivityScreen
+import com.grk.mpa.app.ui.recap.RecapScreen
 import com.grk.mpa.app.ui.support.ContactScreen
 import com.grk.mpa.app.ui.support.HelpScreen
 import com.grk.mpa.app.ui.utilities.UtilitiesScreen
@@ -16,6 +17,7 @@ import com.grk.mpa.app.ui.utilities.UtilitiesScreen
 /** Pages reached from the Account tab; they are not in the bottom bar. */
 const val HELP_ROUTE = "help"
 const val CONTACT_ROUTE = "contact"
+const val RECAP_ROUTE = "recap"
 
 @Composable
 fun MpaNavHost(
@@ -32,7 +34,8 @@ fun MpaNavHost(
             HomeScreen(
                 onSelect = onNavigate,
                 onOpenHelp = { navController.navigate(HELP_ROUTE) },
-                onOpenContact = { navController.navigate(CONTACT_ROUTE) }
+                onOpenContact = { navController.navigate(CONTACT_ROUTE) },
+                onOpenRecap = { navController.navigate(RECAP_ROUTE) }
             )
         }
         composable(Destination.GAMES.route) { GamesScreen() }
@@ -44,6 +47,7 @@ fun MpaNavHost(
                 onOpenContact = { navController.navigate(CONTACT_ROUTE) }
             )
         }
+        composable(RECAP_ROUTE) { RecapScreen(onBack = { navController.popBackStack() }) }
         composable(HELP_ROUTE) {
             HelpScreen(
                 onBack = { navController.popBackStack() },
