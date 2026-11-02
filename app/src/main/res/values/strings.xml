@@ -15,10 +15,12 @@
     <string name="feature_productivity">Tasks, reminders and expenses</string>
     <string name="feature_account">Profile and settings</string>
     <string name="home_brand">MPA</string>
-    <string name="home_headline">Everything you need,\nin one place.</string>
-    <string name="home_welcome">Welcome to your Multi Portal Application.</string>
-    <string name="home_explore_title">Explore MPA</string>
-    <string name="home_explore_subtitle">Choose a section to get started.</string>
+    <string name="home_headline">Welcome to MPA</string>
+    <string name="home_welcome">Tasks, expenses, games and tools in one place. Free, and works on your phone.</string>
+    <string name="home_signin">Sign in</string>
+    <string name="home_create_account">Create account</string>
+    <string name="home_search_hint">Search apps</string>
+    <string name="home_no_match">No applications match your search.</string>
     <string name="guess_title">Number Guess</string>
     <string name="guess_instructions">Guess the number from 1 to %1$d. You have %2$d chances.</string>
     <string name="guess_input_label">Your guess</string>
