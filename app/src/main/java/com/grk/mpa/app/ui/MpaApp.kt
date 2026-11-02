@@ -6,7 +6,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Scaffold
+import com.grk.mpa.app.ui.theme.MpaPortalTopBar
+import com.grk.mpa.app.ui.theme.MpaPortalTopBarDark
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,7 +35,10 @@ fun MpaApp() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
+        // On Home the navy bar of the portal look reaches up behind the status bar.
+        containerColor = if (currentRoute == Destination.HOME.route) {
+            if (isSystemInDarkTheme()) MpaPortalTopBarDark else MpaPortalTopBar
+        } else MaterialTheme.colorScheme.background,
         bottomBar = { MpaBottomBar(currentRoute = currentRoute, onSelect = onNavigate) }
     ) { insets ->
         MpaNavHost(
