@@ -31,7 +31,6 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 20 | `phase20/match-cards` | Match Cards on the Games tab, matching the website: three sizes, moves and timer, best results and history on the device | In review |
 | 21 | `phase21/your-week` | "Your week" recap and a daily mood tap, matching the website: tasks, spending, games, active days, highlights and the monthly budget, built from data on the device | In review |
 | 22 | `phase22/unit-colors` | Unit converter: a light colour and emoji badge per category, with the field being typed in highlighted; light and dark variants | In review |
-| 23 | `phase23/home-look` | Home screen in the website look: gradient page, navy bar, white hero with Sign in / Create account, quick-link pills, search, and one tile per section | In review |
 | 16 | `phase16/sudoku` | Sudoku on the Games tab, matching the website: three difficulties, notes, hints, undo, check, timer and best times, saved on the device | In review |
 
 Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku, Chess, Match Cards), Utilities (unit converter and Binary converter), Productivity (local
