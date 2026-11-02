@@ -14,11 +14,3 @@ val MpaDarkBackground = Color(0xFF111318)
 val MpaDarkSurface = Color(0xFF1B1E25)
 val MpaDarkOnBackground = Color(0xFFE2E2EA)
 val MpaDarkOnSurfaceVariant = Color(0xFFC1C6D4)
-
-// Home screen, matching the website's portal look.
-val MpaPortalGradientStart = Color(0xFF5A67D8)
-val MpaPortalGradientEnd = Color(0xFF6B3FA0)
-val MpaPortalDarkStart = Color(0xFF1E3C72)
-val MpaPortalDarkEnd = Color(0xFF2A2A5C)
-val MpaPortalTopBar = Color(0xFF003399)
-val MpaPortalTopBarDark = Color(0xFF0D1B2A)
