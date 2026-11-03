@@ -32,6 +32,8 @@ class DecisionMakerViewModel(
         private set
     var winners by mutableStateOf<List<String>>(emptyList())
         private set
+    var spinToken by mutableStateOf(0)
+        private set
     var isLoaded by mutableStateOf(false)
         private set
     var errorMessage by mutableStateOf<String?>(null)
@@ -137,6 +139,7 @@ class DecisionMakerViewModel(
         val result = DecisionMakerOperations.pickWinners(category.options, winnerCount)
         result.onSuccess { selected ->
             winners = selected
+            spinToken += 1
             val now = clock()
             data = DecisionMakerOperations.addHistory(
                 data = data,
