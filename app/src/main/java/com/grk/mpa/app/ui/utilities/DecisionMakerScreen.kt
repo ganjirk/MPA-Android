@@ -192,7 +192,7 @@ fun DecisionMakerScreen(
             val wheelOptions = category?.options.orEmpty()
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Canvas(
-                    Modifier.size(260.dp).graphicsLayer { rotationZ = wheelRotation.value }
+                    Modifier.size(280.dp).graphicsLayer { rotationZ = wheelRotation.value }
                 ) {
                     val colors = listOf(
                         Color(0xFF477BBA), Color(0xFF4F9B83), Color(0xFFE0A34B),
@@ -232,8 +232,8 @@ fun DecisionMakerScreen(
                         val maxLabelWidth = (
                             2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.88f
                         ).coerceAtLeast(radius * 0.12f)
-                        paint.textSize = min(radius * 0.14f, maxLabelWidth * 0.34f)
-                            .coerceAtLeast(radius * 0.075f)
+                        paint.textSize = min(radius * 0.14f, maxLabelWidth * 0.14f)
+                            .coerceAtLeast(radius * 0.045f)
                         val label = TextUtils.ellipsize(
                             option,
                             paint,
