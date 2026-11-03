@@ -66,7 +66,7 @@ fun DecisionMakerScreen(
     var clearHistoryDialog by rememberSaveable { mutableStateOf(false) }
 
     val wheelRotation = remember { Animatable(0f) }
-    LaunchedEffect(viewModel.winners) {
+    LaunchedEffect(viewModel.spinToken) {
         if (viewModel.winners.isNotEmpty() && viewModel.displayMode == DecisionDisplayMode.WHEEL) {
             wheelRotation.animateTo(
                 targetValue = wheelRotation.value + 1800f + (0..359).random(),
