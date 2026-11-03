@@ -271,12 +271,4 @@ private fun BinaryConversionCard(viewModel: BinaryConverterViewModel) {
         }
     }
 }
-@Composable
-private fun ResultCard(content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
-    }
-}
+
