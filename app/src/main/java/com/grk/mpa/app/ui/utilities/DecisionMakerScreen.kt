@@ -1,5 +1,8 @@
 package com.grk.mpa.app.ui.utilities
 
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Typeface
+import android.text.TextUtils
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -40,14 +43,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grk.mpa.app.core.DecisionCategory
+import com.grk.mpa.app.core.DecisionWheelMath
 import com.grk.mpa.app.data.DataStoreDecisionMakerRepository
 import java.text.DateFormat
 import java.util.Date
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 
 @Composable
 fun DecisionMakerScreen(
@@ -64,10 +72,21 @@ fun DecisionMakerScreen(
     var clearHistoryDialog by rememberSaveable { mutableStateOf(false) }
 
     val wheelRotation = remember { Animatable(0f) }
-    LaunchedEffect(viewModel.spinToken) {
-        if (viewModel.winners.isNotEmpty() && viewModel.displayMode == DecisionDisplayMode.WHEEL) {
+    LaunchedEffect(viewModel.spinToken, viewModel.spinTargetIndex, viewModel.displayMode) {
+        val optionCount = viewModel.selectedCategory?.options?.size ?: 0
+        val winnerIndex = viewModel.spinTargetIndex
+        if (
+            viewModel.winners.isNotEmpty() &&
+            viewModel.displayMode == DecisionDisplayMode.WHEEL &&
+            winnerIndex != null &&
+            optionCount > 0
+        ) {
             wheelRotation.animateTo(
-                targetValue = wheelRotation.value + 1800f + (0..359).random(),
+                targetValue = DecisionWheelMath.targetRotation(
+                    currentRotation = wheelRotation.value,
+                    winnerIndex = winnerIndex,
+                    optionCount = optionCount
+                ),
                 animationSpec = tween(durationMillis = 4800)
             )
         }
@@ -110,18 +129,184 @@ fun DecisionMakerScreen(
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = {
-                editingCategoryId = null
-                categoryName = ""
-                categoryDialog = true
-            }) { Text("＋ Category") }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    editingCategoryId = null
+                    categoryName = ""
+                    categoryDialog = true
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("＋ Category")
+            }
+
             if (category != null) {
-                OutlinedButton(onClick = viewModel::resetOptions) { Text("Reset options") }
                 if (!category.isCustom) {
-                    OutlinedButton(onClick = viewModel::restoreDefaults) { Text("Restore defaults") }
+                    OutlinedButton(
+                        onClick = viewModel::restoreDefaults,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Restore selected category defaults")
+                    }
+                }
+
+                OutlinedButton(
+                    onClick = viewModel::resetOptions,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Reset options")
                 }
             }
+        }
+
+        Text("Number of winners", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            (1..3).forEach { count ->
+                FilterChip(
+                    selected = viewModel.winnerCount == count,
+                    enabled = (category?.options?.size ?: 0) >= count,
+                    onClick = { viewModel.updateWinnerCount(count) },
+                    label = { Text(count.toString()) }
+                )
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = viewModel.displayMode == DecisionDisplayMode.WHEEL,
+                onClick = { viewModel.updateDisplayMode(DecisionDisplayMode.WHEEL) },
+                label = { Text("Wheel") }
+            )
+            FilterChip(
+                selected = viewModel.displayMode == DecisionDisplayMode.LIST,
+                onClick = { viewModel.updateDisplayMode(DecisionDisplayMode.LIST) },
+                label = { Text("List") }
+            )
+        }
+
+        if (viewModel.displayMode == DecisionDisplayMode.WHEEL) {
+            val wheelOptions = category?.options.orEmpty()
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Canvas(
+                    Modifier.size(260.dp).graphicsLayer { rotationZ = wheelRotation.value }
+                ) {
+                    val colors = listOf(
+                        Color(0xFF477BBA), Color(0xFF4F9B83), Color(0xFFE0A34B),
+                        Color(0xFF9A70B5), Color(0xFFCF6D69), Color(0xFF5596A5)
+                    )
+                    val optionCount = wheelOptions.size.coerceAtLeast(1)
+                    val sweep = 360f / optionCount
+                    wheelOptions.forEachIndexed { index, _ ->
+                        drawArc(
+                            color = colors[index % colors.size],
+                            startAngle = -90f + index * sweep,
+                            sweepAngle = sweep,
+                            useCenter = true
+                        )
+                    }
+
+                    // Draw each option on its own slice. Labels follow the slice
+                    // angle and are flipped when needed to remain readable.
+                    val nativeCanvas = drawContext.canvas.nativeCanvas
+                    val centerX = size.width / 2f
+                    val centerY = size.height / 2f
+                    val radius = size.minDimension / 2f
+                    val labelRadius = radius * 0.57f
+                    val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+                        color = android.graphics.Color.WHITE
+                        textAlign = AndroidPaint.Align.CENTER
+                        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                        textSize = radius * 0.14f
+                        setShadowLayer(radius * 0.025f, 0f, radius * 0.01f, android.graphics.Color.BLACK)
+                    }
+
+                    wheelOptions.forEachIndexed { index, option ->
+                        val middleAngle = -90f + (index + 0.5f) * sweep
+                        val radians = Math.toRadians(middleAngle.toDouble())
+                        val labelX = centerX + cos(radians).toFloat() * labelRadius
+                        val labelY = centerY + sin(radians).toFloat() * labelRadius
+                        val maxLabelWidth = (
+                            2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.88f
+                        ).coerceAtLeast(radius * 0.12f)
+                        paint.textSize = min(radius * 0.14f, maxLabelWidth * 0.34f)
+                            .coerceAtLeast(radius * 0.075f)
+                        val label = TextUtils.ellipsize(
+                            option,
+                            paint,
+                            maxLabelWidth,
+                            TextUtils.TruncateAt.END
+                        ).toString()
+
+                        var textRotation = (middleAngle + 90f + 360f) % 360f
+                        val flipText = textRotation in 90f..270f
+                        if (flipText) textRotation = (textRotation + 180f) % 360f
+
+                        nativeCanvas.save()
+                        nativeCanvas.rotate(textRotation, labelX, labelY)
+                        nativeCanvas.drawText(
+                            label,
+                            labelX,
+                            labelY + paint.textSize * 0.35f,
+                            paint
+                        )
+                        nativeCanvas.restore()
+                    }
+                }
+                Surface(
+                    modifier = Modifier.size(20.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 3.dp
+                ) {}
+                Text("▼", modifier = Modifier.align(Alignment.TopCenter), color = MaterialTheme.colorScheme.primary)
+            }
+            Text(
+                "The wheel spins for about five seconds. Each slice shows an option; the pointer stops on the selected winner.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            Text("A random selection is made from the available options.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Button(onClick = viewModel::pickWinners, enabled = viewModel.canPick, modifier = Modifier.weight(1f)) {
+                Text("Pick winner")
+            }
+            OutlinedButton(onClick = viewModel::pickAgain, enabled = viewModel.canPick) {
+                Text("Pick Again")
+            }
+        }
+
+        if (viewModel.winners.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (viewModel.winners.size == 1) "The winner is…" else "The winners are…", style = MaterialTheme.typography.titleMedium)
+                    if (viewModel.winners.size > 1 && viewModel.displayMode == DecisionDisplayMode.WHEEL) {
+                        Text(
+                            "The wheel pointer highlights the first winner; the remaining winners are selected uniquely.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    viewModel.winners.forEachIndexed { index, winner ->
+                        Text("${index + 1}. $winner", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    }
+                    TextButton(onClick = viewModel::clearWinners) { Text("Reset choices") }
+                }
+            }
+        }
+
+        viewModel.errorMessage?.let { message ->
+            Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = viewModel::clearError) { Text("Dismiss") }
         }
 
         Text("Options", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -158,92 +343,6 @@ fun DecisionMakerScreen(
                 },
                 enabled = viewModel.canAddOption && optionInput.isNotBlank()
             ) { Text("Add") }
-        }
-
-        Text("Number of winners", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            (1..3).forEach { count ->
-                FilterChip(
-                    selected = viewModel.winnerCount == count,
-                    enabled = (category?.options?.size ?: 0) >= count,
-                    onClick = { viewModel.updateWinnerCount(count) },
-                    label = { Text(count.toString()) }
-                )
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = viewModel.displayMode == DecisionDisplayMode.WHEEL,
-                onClick = { viewModel.updateDisplayMode(DecisionDisplayMode.WHEEL) },
-                label = { Text("Wheel") }
-            )
-            FilterChip(
-                selected = viewModel.displayMode == DecisionDisplayMode.LIST,
-                onClick = { viewModel.updateDisplayMode(DecisionDisplayMode.LIST) },
-                label = { Text("List") }
-            )
-        }
-
-        if (viewModel.displayMode == DecisionDisplayMode.WHEEL) {
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Canvas(
-                    Modifier.size(224.dp).graphicsLayer { rotationZ = wheelRotation.value }
-                ) {
-                    val colors = listOf(
-                        Color(0xFF477BBA), Color(0xFF4F9B83), Color(0xFFE0A34B),
-                        Color(0xFF9A70B5), Color(0xFFCF6D69), Color(0xFF5596A5)
-                    )
-                    val sweep = 360f / (category?.options?.size?.coerceAtLeast(1) ?: 1)
-                    category?.options?.forEachIndexed { index, _ ->
-                        drawArc(
-                            color = colors[index % colors.size],
-                            startAngle = -90f + index * sweep,
-                            sweepAngle = sweep,
-                            useCenter = true
-                        )
-                    }
-                }
-                Surface(
-                    modifier = Modifier.size(20.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp
-                ) {}
-                Text("▼", modifier = Modifier.align(Alignment.TopCenter), color = MaterialTheme.colorScheme.primary)
-            }
-            Text("The wheel spins for about five seconds. Your selected result appears below.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            Text("A random selection is made from the available options.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(onClick = viewModel::pickWinners, enabled = viewModel.canPick, modifier = Modifier.weight(1f)) {
-                Text("Pick winner")
-            }
-            OutlinedButton(onClick = viewModel::pickAgain, enabled = viewModel.canPick) {
-                Text("Pick Again")
-            }
-        }
-
-        if (viewModel.winners.isNotEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-            ) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(if (viewModel.winners.size == 1) "The winner is…" else "The winners are…", style = MaterialTheme.typography.titleMedium)
-                    viewModel.winners.forEachIndexed { index, winner ->
-                        Text("${index + 1}. $winner", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    }
-                    TextButton(onClick = viewModel::clearWinners) { Text("Reset choices") }
-                }
-            }
-        }
-
-        viewModel.errorMessage?.let { message ->
-            Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = viewModel::clearError) { Text("Dismiss") }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
