@@ -7,6 +7,39 @@ import org.junit.Test
 class DecisionMakerTest {
 
     @Test
+    fun `wheel rotation aligns every selected segment with the top pointer`() {
+        val optionCount = 8
+        val currentRotation = 725f
+
+        repeat(optionCount) { winnerIndex ->
+            val target = DecisionWheelMath.targetRotation(
+                currentRotation = currentRotation,
+                winnerIndex = winnerIndex,
+                optionCount = optionCount
+            )
+            val segmentCenter = (winnerIndex + 0.5f) * (360f / optionCount)
+            val finalPointerOffset = ((target + segmentCenter) % 360f + 360f) % 360f
+
+            assertEquals(0f, finalPointerOffset, 0.001f)
+            assertTrue(target >= currentRotation + 5 * 360f)
+        }
+    }
+
+    @Test
+    fun `wheel rotation rejects an invalid winner index`() {
+        try {
+            DecisionWheelMath.targetRotation(
+                currentRotation = 0f,
+                winnerIndex = 2,
+                optionCount = 2
+            )
+            fail("Expected an invalid winner index to be rejected.")
+        } catch (expected: IllegalArgumentException) {
+            // Expected.
+        }
+    }
+
+    @Test
     fun `default categories contain six predefined categories`() {
         val categories = DecisionMakerDefaults.freshCategories()
 
