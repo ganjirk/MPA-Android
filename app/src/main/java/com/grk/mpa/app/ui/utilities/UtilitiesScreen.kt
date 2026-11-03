@@ -51,7 +51,9 @@ private enum class UtilityTool(@StringRes val titleRes: Int) {
 @Composable
 fun UtilitiesScreen(modifier: Modifier = Modifier) {
     var selectedName by rememberSaveable { mutableStateOf(UtilityTool.UNITS.name) }
-    val selected = UtilityTool.valueOf(selectedName)
+    // A previously saved "BINARY" selection is no longer a top-level tab.
+    // Fall back to Unit Conversion so existing installs survive this navigation change.
+    val selected = UtilityTool.entries.firstOrNull { it.name == selectedName } ?: UtilityTool.UNITS
 
     Column(modifier.fillMaxSize()) {
         Row(
