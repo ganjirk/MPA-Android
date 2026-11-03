@@ -56,7 +56,9 @@ fun UtilitiesScreen(modifier: Modifier = Modifier) {
 
     Column(modifier.fillMaxSize()) {
         Row(
-            Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             UtilityTool.entries.forEach { tool ->
