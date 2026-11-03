@@ -216,7 +216,7 @@ fun DecisionMakerScreen(
                     val centerY = size.height / 2f
                     val radius = size.minDimension / 2f
                     val labelRadius = radius * 0.57f
-                    val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+                    val paint = android.text.TextPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
                         color = android.graphics.Color.WHITE
                         textAlign = AndroidPaint.Align.CENTER
                         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
