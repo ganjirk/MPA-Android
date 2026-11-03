@@ -72,11 +72,11 @@ class DecisionMakerViewModel(
         winnerCount = winnerCount.coerceAtMost(categories.first { it.id == id }.options.size.coerceAtLeast(1))
     }
 
-    fun setWinnerCount(count: Int) {
+    fun updateWinnerCount(count: Int) {
         winnerCount = count.coerceIn(1, minOf(DecisionMakerDefaults.MAX_WINNERS, selectedCategory?.options?.size ?: 1))
     }
 
-    fun setDisplayMode(mode: DecisionDisplayMode) {
+    fun updateDisplayMode(mode: DecisionDisplayMode) {
         displayMode = mode
     }
 
@@ -118,7 +118,7 @@ class DecisionMakerViewModel(
     fun removeOption(index: Int) {
         if (applyResult(DecisionMakerOperations.removeOption(data, selectedCategoryId, index))) {
             winners = emptyList()
-            setWinnerCount(winnerCount)
+            updateWinnerCount(winnerCount)
         }
     }
 

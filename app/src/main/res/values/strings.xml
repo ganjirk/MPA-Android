@@ -38,6 +38,7 @@
     <string name="guess_stats_no_win">No wins yet on %1$s.</string>
     <string name="tool_units">Units</string>
     <string name="tool_binary">Binary</string>
+    <string name="tool_decision_maker">Decision Maker</string>
     <string name="units_hint">Expand a converter, then type in any field to update the others.</string>
     <string name="units_minimum">Minimum: %1$s</string>
     <string name="error_invalid_number">Enter a valid number.</string>
