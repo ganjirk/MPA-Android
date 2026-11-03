@@ -36,12 +36,12 @@
     <string name="guess_stats_summary">Games: %1$d. Won: %2$d (%3$d%%).</string>
     <string name="guess_stats_best">Best on %1$s: %2$d attempts.</string>
     <string name="guess_stats_no_win">No wins yet on %1$s.</string>
-    <string name="tool_units">Units</string>
-    <string name="tool_binary">Binary</string>
+    <string name="tool_unit_conversion">Unit Conversion</string>
     <string name="tool_decision_maker">Decision Maker</string>
     <string name="units_hint">Expand a converter, then type in any field to update the others.</string>
     <string name="units_minimum">Minimum: %1$s</string>
     <string name="error_invalid_number">Enter a valid number.</string>
+    <string name="binary_conversion_title">Binary Conversion</string>
     <string name="binary_mode_dec_to_bin">Decimal to binary</string>
     <string name="binary_mode_bin_to_dec">Binary to decimal</string>
     <string name="binary_input_decimal">Decimal number</string>
