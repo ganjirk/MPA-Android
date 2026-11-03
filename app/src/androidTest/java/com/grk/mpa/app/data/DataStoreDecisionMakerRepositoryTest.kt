@@ -1,19 +1,25 @@
-
 package com.grk.mpa.app.data
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import android.content.Context
-import androidx.datastore.preferences.preferencesDataStoreFile
 import com.grk.mpa.app.core.DecisionCategory
 import com.grk.mpa.app.core.DecisionHistoryEntry
 import com.grk.mpa.app.core.DecisionMakerData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class DataStoreDecisionMakerRepositoryTest {
@@ -21,22 +27,44 @@ class DataStoreDecisionMakerRepositoryTest {
     private val context: Context
         get() = ApplicationProvider.getApplicationContext()
 
+    private var testScope: CoroutineScope? = null
+    private var testFile: File? = null
+
     private fun createRepository(): DataStoreDecisionMakerRepository {
-        return DataStoreDecisionMakerRepository(context)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        testScope = scope
+
+        val file = File(
+            context.cacheDir,
+            "decision_maker_test_${UUID.randomUUID()}.preferences_pb"
+        )
+        testFile = file
+
+        val store: DataStore<Preferences> =
+            PreferenceDataStoreFactory.create(
+                scope = scope,
+                produceFile = { file }
+            )
+
+        return DataStoreDecisionMakerRepository(context, store)
+    }
+
+    @After
+    fun tearDown() {
+        testScope?.cancel()
+        testFile?.delete()
     }
 
     @Test
     fun load_returnsDefaultData_whenNothingHasBeenSaved() = runBlocking {
-        clearStore()
+        val repository = createRepository()
 
-        val result = createRepository().load()
-
-        assertEquals(DecisionMakerData(), result)
+        assertEquals(DecisionMakerData(), repository.load())
     }
 
     @Test
     fun saveAndLoad_preservesCustomCategoriesAndOptions() = runBlocking {
-        clearStore()
+        val repository = createRepository()
 
         val expected = DecisionMakerData(
             categories = listOf(
@@ -48,36 +76,33 @@ class DataStoreDecisionMakerRepositoryTest {
             )
         )
 
-        val repository = createRepository()
         repository.save(expected)
 
-        assertEquals(expected, createRepository().load())
+        assertEquals(expected, repository.load())
     }
 
     @Test
     fun saveAndLoad_preservesHistory() = runBlocking {
-        clearStore()
+        val repository = createRepository()
 
         val expected = DecisionMakerData(
             history = listOf(
                 DecisionHistoryEntry(
-                    categoryId = "morning",
+                    id = 1L,
                     categoryName = "Morning Routine",
-                    winners = listOf("Exercise")
+                    winners = listOf("Exercise"),
+                    pickedAtMillis = 123456789L
                 )
             )
         )
 
-        val repository = createRepository()
         repository.save(expected)
 
-        assertEquals(expected, createRepository().load())
+        assertEquals(expected, repository.load())
     }
 
     @Test
     fun save_overwritesPreviouslyPersistedData() = runBlocking {
-        clearStore()
-
         val repository = createRepository()
 
         val first = DecisionMakerData()
@@ -94,14 +119,6 @@ class DataStoreDecisionMakerRepositoryTest {
         repository.save(first)
         repository.save(second)
 
-        assertEquals(second, createRepository().load())
-    }
-
-    private fun clearStore() {
-        val file: File = context.preferencesDataStoreFile("decision_maker")
-        if (file.exists()) {
-            assertTrue("Could not delete test DataStore file", file.delete())
-        }
+        assertEquals(second, repository.load())
     }
 }
-
