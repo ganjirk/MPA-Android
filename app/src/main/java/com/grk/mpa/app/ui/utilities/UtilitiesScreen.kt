@@ -44,8 +44,7 @@ import com.grk.mpa.app.core.UnitCategories
 import com.grk.mpa.app.core.UnitCategory
 
 private enum class UtilityTool(@StringRes val titleRes: Int) {
-    UNITS(R.string.tool_units),
-    BINARY(R.string.tool_binary),
+    UNITS(R.string.tool_unit_conversion),
     DECISION_MAKER(R.string.tool_decision_maker)
 }
 
@@ -71,7 +70,6 @@ fun UtilitiesScreen(modifier: Modifier = Modifier) {
         }
         when (selected) {
             UtilityTool.UNITS -> UnitConverterScreen()
-            UtilityTool.BINARY -> BinaryConverterScreen()
             UtilityTool.DECISION_MAKER -> DecisionMakerScreen()
         }
     }
@@ -90,7 +88,10 @@ private fun ToolColumn(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
+fun UnitConverterScreen(
+    viewModel: UnitConverterViewModel = viewModel(),
+    binaryViewModel: BinaryConverterViewModel = viewModel()
+) {
     // Store IDs as a saveable string so each card can independently retain its open/closed state.
     var expandedIds by rememberSaveable { mutableStateOf("length") }
     val expanded = expandedIds.split(',').filter { it.isNotBlank() }.toSet()
@@ -194,58 +195,82 @@ fun UnitConverterScreen(viewModel: UnitConverterViewModel = viewModel()) {
                 }
             }
         }
+        BinaryConversionCard(binaryViewModel)
     }
 }
 
 @Composable
-fun BinaryConverterScreen(viewModel: BinaryConverterViewModel = viewModel()) {
-    ToolColumn {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = viewModel.mode == BinaryMode.DECIMAL_TO_BINARY,
-                onClick = { viewModel.onModeChange(BinaryMode.DECIMAL_TO_BINARY) },
-                label = { Text(stringResource(R.string.binary_mode_dec_to_bin)) }
+private fun BinaryConversionCard(viewModel: BinaryConverterViewModel) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                stringResource(R.string.binary_conversion_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
             )
-            FilterChip(
-                selected = viewModel.mode == BinaryMode.BINARY_TO_DECIMAL,
-                onClick = { viewModel.onModeChange(BinaryMode.BINARY_TO_DECIMAL) },
-                label = { Text(stringResource(R.string.binary_mode_bin_to_dec)) }
-            )
-        }
-        val toBinary = viewModel.mode == BinaryMode.DECIMAL_TO_BINARY
-        OutlinedTextField(
-            value = viewModel.input,
-            onValueChange = viewModel::onInputChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text(stringResource(if (toBinary) R.string.binary_input_decimal else R.string.binary_input_binary))
-            },
-            singleLine = true,
-            isError = viewModel.isInvalid,
-            supportingText = if (viewModel.isInvalid) {
-                {
-                    Text(
-                        stringResource(
-                            if (toBinary) R.string.error_invalid_decimal else R.string.error_invalid_binary
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = viewModel.mode == BinaryMode.DECIMAL_TO_BINARY,
+                    onClick = { viewModel.onModeChange(BinaryMode.DECIMAL_TO_BINARY) },
+                    label = { Text(stringResource(R.string.binary_mode_dec_to_bin)) }
+                )
+                FilterChip(
+                    selected = viewModel.mode == BinaryMode.BINARY_TO_DECIMAL,
+                    onClick = { viewModel.onModeChange(BinaryMode.BINARY_TO_DECIMAL) },
+                    label = { Text(stringResource(R.string.binary_mode_bin_to_dec)) }
+                )
+            }
+            val toBinary = viewModel.mode == BinaryMode.DECIMAL_TO_BINARY
+            OutlinedTextField(
+                value = viewModel.input,
+                onValueChange = viewModel::onInputChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text(stringResource(if (toBinary) R.string.binary_input_decimal else R.string.binary_input_binary))
+                },
+                singleLine = true,
+                isError = viewModel.isInvalid,
+                supportingText = if (viewModel.isInvalid) {
+                    {
+                        Text(
+                            stringResource(
+                                if (toBinary) R.string.error_invalid_decimal else R.string.error_invalid_binary
+                            )
                         )
+                    }
+                } else null,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = if (toBinary) KeyboardType.Decimal else KeyboardType.Number
+                )
+            )
+            viewModel.result?.let { result ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        stringResource(if (toBinary) R.string.binary_result_binary else R.string.binary_result_decimal),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        result,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
-            } else null,
-            keyboardOptions = KeyboardOptions(keyboardType = if (toBinary) KeyboardType.Decimal else KeyboardType.Number)
-        )
-        viewModel.result?.let { result ->
-            ResultCard {
-                Text(
-                    stringResource(if (toBinary) R.string.binary_result_binary else R.string.binary_result_decimal),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(result, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
             }
         }
     }
 }
-
 @Composable
 private fun ResultCard(content: @Composable () -> Unit) {
     Card(
