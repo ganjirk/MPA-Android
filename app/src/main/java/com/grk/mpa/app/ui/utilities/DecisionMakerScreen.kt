@@ -217,7 +217,11 @@ fun DecisionMakerScreen(
                     val centerX = size.width / 2f
                     val centerY = size.height / 2f
                     val radius = size.minDimension / 2f
-                    val labelRadius = radius * 0.57f
+                    val sweepRadians = Math.toRadians(sweep.toDouble())
+                    val labelRadius = radius * (
+                        4.0 * sin(sweepRadians / 2.0) /
+                            (3.0 * sweepRadians)
+                    ).toFloat()
                     val paint = android.text.TextPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
                         color = android.graphics.Color.WHITE
                         textAlign = AndroidPaint.Align.CENTER
