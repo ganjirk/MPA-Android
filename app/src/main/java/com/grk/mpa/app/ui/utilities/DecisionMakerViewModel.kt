@@ -104,11 +104,15 @@ class DecisionMakerViewModel(
     }
 
     fun addOption(value: String) {
-        applyResult(DecisionMakerOperations.addOption(data, selectedCategoryId, value))
+        if (applyResult(DecisionMakerOperations.addOption(data, selectedCategoryId, value))) {
+            winners = emptyList()
+        }
     }
 
     fun editOption(index: Int, value: String) {
-        applyResult(DecisionMakerOperations.editOption(data, selectedCategoryId, index, value))
+        if (applyResult(DecisionMakerOperations.editOption(data, selectedCategoryId, index, value))) {
+            winners = emptyList()
+        }
     }
 
     fun removeOption(index: Int) {
@@ -160,6 +164,7 @@ class DecisionMakerViewModel(
     }
 
     fun clearHistory() {
+        if (!isLoaded) return
         data = DecisionMakerOperations.clearHistory(data)
         persist()
     }
@@ -169,6 +174,7 @@ class DecisionMakerViewModel(
     }
 
     private fun applyResult(result: Result<DecisionMakerData>): Boolean {
+        if (!isLoaded) return false
         result.onSuccess {
             data = it
             persist()
