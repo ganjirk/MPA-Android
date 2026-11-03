@@ -36,6 +36,30 @@ enum class DecisionMakerError {
     INVALID_WINNER_COUNT
 }
 
+/**
+ * Calculates a clockwise final rotation that places the selected wheel segment
+ * under the fixed pointer at the top of the wheel.
+ */
+object DecisionWheelMath {
+    fun targetRotation(
+        currentRotation: Float,
+        winnerIndex: Int,
+        optionCount: Int,
+        fullSpins: Int = 5
+    ): Float {
+        require(optionCount > 0) { "The wheel must contain at least one option." }
+        require(winnerIndex in 0 until optionCount) { "Winner index is outside the wheel options." }
+        require(fullSpins >= 1) { "The wheel must complete at least one full spin." }
+
+        val segmentSweep = 360f / optionCount
+        val segmentCenter = (winnerIndex + 0.5f) * segmentSweep
+        val currentAngle = ((currentRotation % 360f) + 360f) % 360f
+        val alignment = (360f - ((currentAngle + segmentCenter) % 360f)) % 360f
+
+        return currentRotation + fullSpins * 360f + alignment
+    }
+}
+
 object DecisionMakerDefaults {
     const val MAX_CATEGORY_NAME_LENGTH = 50
     const val MAX_OPTION_LENGTH = 100
