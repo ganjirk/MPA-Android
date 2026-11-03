@@ -45,7 +45,8 @@ import com.grk.mpa.app.core.UnitCategory
 
 private enum class UtilityTool(@StringRes val titleRes: Int) {
     UNITS(R.string.tool_units),
-    BINARY(R.string.tool_binary)
+    BINARY(R.string.tool_binary),
+    DECISION_MAKER(R.string.tool_decision_maker)
 }
 
 @Composable
@@ -69,6 +70,7 @@ fun UtilitiesScreen(modifier: Modifier = Modifier) {
         when (selected) {
             UtilityTool.UNITS -> UnitConverterScreen()
             UtilityTool.BINARY -> BinaryConverterScreen()
+            UtilityTool.DECISION_MAKER -> DecisionMakerScreen()
         }
     }
 }
