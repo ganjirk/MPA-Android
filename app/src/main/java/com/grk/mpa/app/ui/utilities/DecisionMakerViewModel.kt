@@ -34,6 +34,8 @@ class DecisionMakerViewModel(
         private set
     var spinToken by mutableStateOf(0)
         private set
+    var spinTargetIndex by mutableStateOf<Int?>(null)
+        private set
     var isLoaded by mutableStateOf(false)
         private set
     var errorMessage by mutableStateOf<String?>(null)
@@ -67,7 +69,7 @@ class DecisionMakerViewModel(
     fun selectCategory(id: String) {
         if (categories.none { it.id == id }) return
         selectedCategoryId = id
-        winners = emptyList()
+        clearWinnerSelection()
         errorMessage = null
         winnerCount = winnerCount.coerceAtMost(categories.first { it.id == id }.options.size.coerceAtLeast(1))
     }
@@ -85,7 +87,7 @@ class DecisionMakerViewModel(
         applyResult(result)
         if (result.isSuccess) {
             selectedCategoryId = data.categories.last().id
-            winners = emptyList()
+            clearWinnerSelection()
         }
     }
 
@@ -98,40 +100,40 @@ class DecisionMakerViewModel(
         if (applyResult(result)) {
             if (selectedCategoryId == id) {
                 selectedCategoryId = data.categories.firstOrNull()?.id.orEmpty()
-                winners = emptyList()
+                clearWinnerSelection()
             }
         }
     }
 
     fun addOption(value: String) {
         if (applyResult(DecisionMakerOperations.addOption(data, selectedCategoryId, value))) {
-            winners = emptyList()
+            clearWinnerSelection()
         }
     }
 
     fun editOption(index: Int, value: String) {
         if (applyResult(DecisionMakerOperations.editOption(data, selectedCategoryId, index, value))) {
-            winners = emptyList()
+            clearWinnerSelection()
         }
     }
 
     fun removeOption(index: Int) {
         if (applyResult(DecisionMakerOperations.removeOption(data, selectedCategoryId, index))) {
-            winners = emptyList()
+            clearWinnerSelection()
             updateWinnerCount(winnerCount)
         }
     }
 
     fun resetOptions() {
         if (applyResult(DecisionMakerOperations.resetOptions(data, selectedCategoryId))) {
-            winners = emptyList()
+            clearWinnerSelection()
             winnerCount = 1
         }
     }
 
     fun restoreDefaults() {
         if (applyResult(DecisionMakerOperations.restoreDefaults(data, selectedCategoryId))) {
-            winners = emptyList()
+            clearWinnerSelection()
             winnerCount = 1
         }
     }
@@ -143,6 +145,7 @@ class DecisionMakerViewModel(
         val result = DecisionMakerOperations.pickWinners(category.options, winnerCount)
         result.onSuccess { selected ->
             winners = selected
+            spinTargetIndex = category.options.indexOf(selected.first()).takeIf { it >= 0 }
             spinToken += 1
             val now = clock()
             data = DecisionMakerOperations.addHistory(
@@ -160,7 +163,12 @@ class DecisionMakerViewModel(
     }
 
     fun clearWinners() {
+        clearWinnerSelection()
+    }
+
+    private fun clearWinnerSelection() {
         winners = emptyList()
+        spinTargetIndex = null
     }
 
     fun clearHistory() {
