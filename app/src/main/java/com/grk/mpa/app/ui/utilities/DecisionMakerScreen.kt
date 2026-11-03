@@ -235,17 +235,25 @@ fun DecisionMakerScreen(
                         val radians = Math.toRadians(middleAngle.toDouble())
                         val labelX = centerX + cos(radians).toFloat() * labelRadius
                         val labelY = centerY + sin(radians).toFloat() * labelRadius
-                        val maxLabelWidth = (
-                            2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.76f
-                        ).coerceAtLeast(radius * 0.04f)
-                        paint.textSize = min(radius * 0.15f, maxLabelWidth * 0.18f)
-                            .coerceAtLeast(radius * 0.035f)
+                        // Text is radial, so its layout width runs toward/away
+                        // from the wheel center. Keep the full block inside the
+                        // circular edge with a small safety margin.
+                        val radialLabelWidth = (
+                            2f * (radius - labelRadius) * 0.78f
+                        ).coerceAtLeast(radius * 0.08f)
+                        // After rotation, the layout height occupies the slice's
+                        // tangential direction. Limit font size to that space.
+                        val tangentialSpace = (
+                            2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.72f
+                        ).coerceAtLeast(radius * 0.08f)
+                        paint.textSize = min(radius * 0.10f, tangentialSpace * 0.22f)
+                            .coerceAtLeast(radius * 0.025f)
                         val labelLayout = StaticLayout.Builder.obtain(
                             option,
                             0,
                             option.length,
                             paint,
-                            maxLabelWidth.toInt().coerceAtLeast(1)
+                            radialLabelWidth.toInt().coerceAtLeast(1)
                         )
                             .setAlignment(Layout.Alignment.ALIGN_CENTER)
                             .setIncludePad(false)
