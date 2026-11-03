@@ -253,9 +253,7 @@ fun DecisionMakerScreen(
                             .setEllipsize(TextUtils.TruncateAt.END)
                             .build()
 
-                        // Align the label along the slice's radial centerline.
-                        // Adding 90 degrees here would make it tangential to the wheel.
-                        var textRotation = (middleAngle + 360f) % 360f
+                        var textRotation = (middleAngle + 90f + 360f) % 360f
                         val flipText = textRotation in 90f..270f
                         if (flipText) textRotation = (textRotation + 180f) % 360f
 
