@@ -1,0 +1,358 @@
+package com.grk.mpa.app.ui.utilities
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.grk.mpa.app.core.DecisionCategory
+import com.grk.mpa.app.data.DataStoreDecisionMakerRepository
+import java.text.DateFormat
+import java.util.Date
+
+@Composable
+fun DecisionMakerScreen(
+    modifier: Modifier = Modifier,
+    viewModel: DecisionMakerViewModel = decisionMakerViewModel()
+) {
+    var optionInput by rememberSaveable { mutableStateOf("") }
+    var categoryDialog by rememberSaveable { mutableStateOf(false) }
+    var categoryName by rememberSaveable { mutableStateOf("") }
+    var editingCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
+    var optionDialogIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var optionDialogValue by rememberSaveable { mutableStateOf("") }
+    var deleteCategory by remember { mutableStateOf<DecisionCategory?>(null) }
+    var clearHistoryDialog by rememberSaveable { mutableStateOf(false) }
+
+    val wheelRotation = remember { Animatable(0f) }
+    LaunchedEffect(viewModel.winners) {
+        if (viewModel.winners.isNotEmpty() && viewModel.displayMode == DecisionDisplayMode.WHEEL) {
+            wheelRotation.animateTo(
+                targetValue = wheelRotation.value + 1800f + (0..359).random(),
+                animationSpec = tween(durationMillis = 4800)
+            )
+        }
+    }
+
+    Column(
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Decision Maker", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(if (viewModel.isLoaded) "Saved on this device" else "Loading…", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            viewModel.categories.forEach { category ->
+                FilterChip(
+                    selected = category.id == viewModel.selectedCategoryId,
+                    onClick = { viewModel.selectCategory(category.id) },
+                    label = { Text(category.name) }
+                )
+            }
+        }
+
+        val category = viewModel.selectedCategory
+        if (category != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(category.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                if (category.isCustom) {
+                    TextButton(onClick = {
+                        editingCategoryId = category.id
+                        categoryName = category.name
+                        categoryDialog = true
+                    }) { Text("Rename") }
+                    TextButton(onClick = { deleteCategory = category }) { Text("Delete") }
+                }
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedButton(onClick = {
+                editingCategoryId = null
+                categoryName = ""
+                categoryDialog = true
+            }) { Text("＋ Category") }
+            if (category != null) {
+                OutlinedButton(onClick = viewModel::resetOptions) { Text("Reset options") }
+                if (!category.isCustom) {
+                    OutlinedButton(onClick = viewModel::restoreDefaults) { Text("Restore defaults") }
+                }
+            }
+        }
+
+        Text("Options", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        if (category?.options.isNullOrEmpty()) {
+            Text("No options yet. Add at least two options to make a decision.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            category!!.options.forEachIndexed { index, option ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.medium).padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(option, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                    TextButton(onClick = {
+                        optionDialogIndex = index
+                        optionDialogValue = option
+                    }) { Text("Edit") }
+                    TextButton(onClick = { viewModel.removeOption(index) }) { Text("Remove") }
+                }
+            }
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = optionInput,
+                onValueChange = { optionInput = it.take(100) },
+                modifier = Modifier.weight(1f),
+                label = { Text("Add an option") },
+                singleLine = true
+            )
+            Button(
+                onClick = {
+                    viewModel.addOption(optionInput)
+                    if (viewModel.errorMessage == null) optionInput = ""
+                },
+                enabled = viewModel.canAddOption && optionInput.isNotBlank()
+            ) { Text("Add") }
+        }
+
+        Text("Number of winners", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            (1..3).forEach { count ->
+                FilterChip(
+                    selected = viewModel.winnerCount == count,
+                    enabled = (category?.options?.size ?: 0) >= count,
+                    onClick = { viewModel.setWinnerCount(count) },
+                    label = { Text(count.toString()) }
+                )
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = viewModel.displayMode == DecisionDisplayMode.WHEEL,
+                onClick = { viewModel.setDisplayMode(DecisionDisplayMode.WHEEL) },
+                label = { Text("Wheel") }
+            )
+            FilterChip(
+                selected = viewModel.displayMode == DecisionDisplayMode.LIST,
+                onClick = { viewModel.setDisplayMode(DecisionDisplayMode.LIST) },
+                label = { Text("List") }
+            )
+        }
+
+        if (viewModel.displayMode == DecisionDisplayMode.WHEEL) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Canvas(
+                    Modifier.size(224.dp).graphicsLayer { rotationZ = wheelRotation.value }
+                ) {
+                    val colors = listOf(
+                        Color(0xFF477BBA), Color(0xFF4F9B83), Color(0xFFE0A34B),
+                        Color(0xFF9A70B5), Color(0xFFCF6D69), Color(0xFF5596A5)
+                    )
+                    val sweep = 360f / (category?.options?.size?.coerceAtLeast(1) ?: 1)
+                    category?.options?.forEachIndexed { index, _ ->
+                        drawArc(
+                            color = colors[index % colors.size],
+                            startAngle = -90f + index * sweep,
+                            sweepAngle = sweep,
+                            useCenter = true
+                        )
+                    }
+                }
+                Surface(
+                    modifier = Modifier.size(20.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 3.dp
+                ) {}
+                Text("▼", modifier = Modifier.align(Alignment.TopCenter), color = MaterialTheme.colorScheme.primary)
+            }
+            Text("The wheel spins for about five seconds. Your selected result appears below.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            Text("A random selection is made from the available options.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Button(onClick = viewModel::pickWinners, enabled = viewModel.canPick, modifier = Modifier.weight(1f)) {
+                Text("Pick winner")
+            }
+            OutlinedButton(onClick = viewModel::pickAgain, enabled = viewModel.canPick) {
+                Text("Pick Again")
+            }
+        }
+
+        if (viewModel.winners.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (viewModel.winners.size == 1) "The winner is…" else "The winners are…", style = MaterialTheme.typography.titleMedium)
+                    viewModel.winners.forEachIndexed { index, winner ->
+                        Text("${index + 1}. $winner", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    }
+                    TextButton(onClick = viewModel::clearWinners) { Text("Reset choices") }
+                }
+            }
+        }
+
+        viewModel.errorMessage?.let { message ->
+            Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = viewModel::clearError) { Text("Dismiss") }
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Recent history", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            if (viewModel.history.isNotEmpty()) {
+                TextButton(onClick = { clearHistoryDialog = true }) { Text("Clear history") }
+            }
+        }
+        if (viewModel.history.isEmpty()) {
+            Text("Your recent picks will appear here.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            viewModel.history.forEach { entry ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(entry.categoryName, fontWeight = FontWeight.SemiBold)
+                        Text(entry.winners.joinToString(", "), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(entry.pickedAtMillis)),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+
+    if (categoryDialog) {
+        AlertDialog(
+            onDismissRequest = { categoryDialog = false },
+            title = { Text(if (editingCategoryId == null) "Create category" else "Rename category") },
+            text = {
+                OutlinedTextField(
+                    value = categoryName,
+                    onValueChange = { categoryName = it.take(50) },
+                    label = { Text("Category name") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val id = editingCategoryId
+                    if (id == null) viewModel.addCategory(categoryName) else viewModel.renameCategory(id, categoryName)
+                    categoryDialog = false
+                }) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { categoryDialog = false }) { Text("Cancel") } }
+        )
+    }
+
+    optionDialogIndex?.let { index ->
+        AlertDialog(
+            onDismissRequest = { optionDialogIndex = null },
+            title = { Text("Edit option") },
+            text = {
+                OutlinedTextField(
+                    value = optionDialogValue,
+                    onValueChange = { optionDialogValue = it.take(100) },
+                    label = { Text("Option") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.editOption(index, optionDialogValue)
+                    optionDialogIndex = null
+                }) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { optionDialogIndex = null }) { Text("Cancel") } }
+        )
+    }
+
+    deleteCategory?.let { target ->
+        AlertDialog(
+            onDismissRequest = { deleteCategory = null },
+            title = { Text("Delete category?") },
+            text = { Text("Delete \"${target.name}\" and its options?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteCategory(target.id)
+                    deleteCategory = null
+                }) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { deleteCategory = null }) { Text("Cancel") } }
+        )
+    }
+
+    if (clearHistoryDialog) {
+        AlertDialog(
+            onDismissRequest = { clearHistoryDialog = false },
+            title = { Text("Clear history?") },
+            text = { Text("This removes your saved recent picks from this device.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.clearHistory()
+                    clearHistoryDialog = false
+                }) { Text("Clear") }
+            },
+            dismissButton = { TextButton(onClick = { clearHistoryDialog = false }) { Text("Cancel") } }
+        )
+    }
+}
+
+@Composable
+private fun decisionMakerViewModel(): DecisionMakerViewModel {
+    val context = LocalContext.current.applicationContext
+    val repository = remember(context) { DataStoreDecisionMakerRepository(context) }
+    return viewModel(factory = remember(repository) { DecisionMakerViewModel.Factory(repository) })
+}
