@@ -166,7 +166,7 @@ fun DecisionMakerScreen(
                 FilterChip(
                     selected = viewModel.winnerCount == count,
                     enabled = (category?.options?.size ?: 0) >= count,
-                    onClick = { viewModel.setWinnerCount(count) },
+                    onClick = { viewModel.updateWinnerCount(count) },
                     label = { Text(count.toString()) }
                 )
             }
@@ -175,12 +175,12 @@ fun DecisionMakerScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = viewModel.displayMode == DecisionDisplayMode.WHEEL,
-                onClick = { viewModel.setDisplayMode(DecisionDisplayMode.WHEEL) },
+                onClick = { viewModel.updateDisplayMode(DecisionDisplayMode.WHEEL) },
                 label = { Text("Wheel") }
             )
             FilterChip(
                 selected = viewModel.displayMode == DecisionDisplayMode.LIST,
-                onClick = { viewModel.setDisplayMode(DecisionDisplayMode.LIST) },
+                onClick = { viewModel.updateDisplayMode(DecisionDisplayMode.LIST) },
                 label = { Text("List") }
             )
         }
