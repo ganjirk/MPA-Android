@@ -2,6 +2,8 @@ package com.grk.mpa.app.ui.utilities
 
 import android.graphics.Paint as AndroidPaint
 import android.graphics.Typeface
+import android.text.Layout
+import android.text.StaticLayout
 import android.text.TextUtils
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -232,14 +234,20 @@ fun DecisionMakerScreen(
                         val maxLabelWidth = (
                             2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.88f
                         ).coerceAtLeast(radius * 0.12f)
-                        paint.textSize = min(radius * 0.14f, maxLabelWidth * 0.14f)
-                            .coerceAtLeast(radius * 0.045f)
-                        val label = TextUtils.ellipsize(
+                        paint.textSize = min(radius * 0.17f, maxLabelWidth * 0.20f)
+                            .coerceAtLeast(radius * 0.05f)
+                        val labelLayout = StaticLayout.Builder.obtain(
                             option,
+                            0,
+                            option.length,
                             paint,
-                            maxLabelWidth,
-                            TextUtils.TruncateAt.END
-                        ).toString()
+                            maxLabelWidth.toInt().coerceAtLeast(1)
+                        )
+                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                            .setIncludePad(false)
+                            .setMaxLines(2)
+                            .setEllipsize(TextUtils.TruncateAt.END)
+                            .build()
 
                         var textRotation = (middleAngle + 90f + 360f) % 360f
                         val flipText = textRotation in 90f..270f
@@ -247,12 +255,11 @@ fun DecisionMakerScreen(
 
                         nativeCanvas.save()
                         nativeCanvas.rotate(textRotation, labelX, labelY)
-                        nativeCanvas.drawText(
-                            label,
-                            labelX,
-                            labelY + paint.textSize * 0.35f,
-                            paint
+                        nativeCanvas.translate(
+                            labelX - labelLayout.width / 2f,
+                            labelY - labelLayout.height / 2f
                         )
+                        labelLayout.draw(nativeCanvas)
                         nativeCanvas.restore()
                     }
                 }
@@ -275,10 +282,10 @@ fun DecisionMakerScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Button(onClick = viewModel::pickWinners, enabled = viewModel.canPick, modifier = Modifier.weight(1f)) {
-                Text("Pick winner")
+                Text("Spin Wheel")
             }
             OutlinedButton(onClick = viewModel::pickAgain, enabled = viewModel.canPick) {
-                Text("Pick Again")
+                Text("Spin Again")
             }
         }
 
