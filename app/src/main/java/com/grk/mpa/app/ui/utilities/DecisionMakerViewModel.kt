@@ -75,7 +75,12 @@ class DecisionMakerViewModel(
     }
 
     fun updateWinnerCount(count: Int) {
-        winnerCount = count.coerceIn(1, minOf(DecisionMakerDefaults.MAX_WINNERS, selectedCategory?.options?.size ?: 1))
+        val updatedCount = count.coerceIn(
+            1,
+            minOf(DecisionMakerDefaults.MAX_WINNERS, selectedCategory?.options?.size ?: 1)
+        )
+        if (updatedCount != winnerCount) clearWinnerSelection()
+        winnerCount = updatedCount
     }
 
     fun updateDisplayMode(mode: DecisionDisplayMode) {
@@ -158,6 +163,7 @@ class DecisionMakerViewModel(
             persist()
             errorMessage = null
         }.onFailure { error ->
+            clearWinnerSelection()
             errorMessage = error.message ?: "Unable to pick a winner."
         }
     }
