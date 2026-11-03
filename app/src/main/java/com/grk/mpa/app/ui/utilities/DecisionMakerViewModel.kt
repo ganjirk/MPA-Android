@@ -118,7 +118,7 @@ class DecisionMakerViewModel(
     fun removeOption(index: Int) {
         if (applyResult(DecisionMakerOperations.removeOption(data, selectedCategoryId, index))) {
             winners = emptyList()
-            setWinnerCount(winnerCount)
+            updateWinnerCount(winnerCount)
         }
     }
 
