@@ -232,10 +232,10 @@ fun DecisionMakerScreen(
                         val labelX = centerX + cos(radians).toFloat() * labelRadius
                         val labelY = centerY + sin(radians).toFloat() * labelRadius
                         val maxLabelWidth = (
-                            2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.88f
-                        ).coerceAtLeast(radius * 0.12f)
-                        paint.textSize = min(radius * 0.17f, maxLabelWidth * 0.20f)
-                            .coerceAtLeast(radius * 0.05f)
+                            2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.76f
+                        ).coerceAtLeast(radius * 0.04f)
+                        paint.textSize = min(radius * 0.15f, maxLabelWidth * 0.18f)
+                            .coerceAtLeast(radius * 0.035f)
                         val labelLayout = StaticLayout.Builder.obtain(
                             option,
                             0,
