@@ -249,6 +249,28 @@ private fun BinaryConversionCard(viewModel: BinaryConverterViewModel) {
                             label = { Text(stringResource(R.string.binary_mode_bin_to_dec)) }
                         )
                     }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            stringResource(R.string.binary_input_decimal),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            " ⇄ ",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            stringResource(R.string.binary_result_binary),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     val toBinary = viewModel.mode == BinaryMode.DECIMAL_TO_BINARY
                     OutlinedTextField(
                         value = viewModel.input,
