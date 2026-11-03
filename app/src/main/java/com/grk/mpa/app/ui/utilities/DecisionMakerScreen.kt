@@ -4,7 +4,6 @@ import android.graphics.Paint as AndroidPaint
 import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
-import android.text.TextUtils
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -55,9 +54,6 @@ import com.grk.mpa.app.core.DecisionWheelMath
 import com.grk.mpa.app.data.DataStoreDecisionMakerRepository
 import java.text.DateFormat
 import java.util.Date
-import kotlin.math.cos
-import kotlin.math.min
-import kotlin.math.sin
 
 @Composable
 fun DecisionMakerScreen(
@@ -211,60 +207,56 @@ fun DecisionMakerScreen(
                         )
                     }
 
-                    // Draw each option on its own slice. Labels follow the slice
-                    // angle and are flipped when needed to remain readable.
-                    val nativeCanvas = drawContext.canvas.nativeCanvas
-                    val centerX = size.width / 2f
-                    val centerY = size.height / 2f
-                    val radius = size.minDimension / 2f
-                    val sweepRadians = Math.toRadians(sweep.toDouble())
-                    val labelRadius = radius * (
-                        4.0 * sin(sweepRadians / 2.0) /
-                            (3.0 * sweepRadians)
-                    ).toFloat()
-                    val paint = android.text.TextPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-                        color = android.graphics.Color.WHITE
-                        textAlign = AndroidPaint.Align.CENTER
-                        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                        textSize = radius * 0.14f
-                        setShadowLayer(radius * 0.025f, 0f, radius * 0.01f, android.graphics.Color.BLACK)
-                    }
+                    // For small wheels, draw horizontal multiline labels inside
+                    // each slice. Larger wheels use a full legend below the wheel
+                    // so long option names are never truncated or forced into
+                    // unreadably narrow slices.
+                    if (optionCount in 2..4) {
+                        val nativeCanvas = drawContext.canvas.nativeCanvas
+                        val centerX = size.width / 2f
+                        val centerY = size.height / 2f
+                        val radius = size.minDimension / 2f
+                        val labelRadius = radius * 0.42f
+                        val paint = android.text.TextPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+                            color = android.graphics.Color.WHITE
+                            textAlign = AndroidPaint.Align.CENTER
+                            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                            textSize = radius * 0.085f
+                            setShadowLayer(radius * 0.02f, 0f, radius * 0.008f, android.graphics.Color.BLACK)
+                        }
 
-                    wheelOptions.forEachIndexed { index, option ->
-                        val middleAngle = -90f + (index + 0.5f) * sweep
-                        val radians = Math.toRadians(middleAngle.toDouble())
-                        val labelX = centerX + cos(radians).toFloat() * labelRadius
-                        val labelY = centerY + sin(radians).toFloat() * labelRadius
-                        val maxLabelWidth = (
-                            2f * labelRadius * sin(Math.PI / optionCount).toFloat() * 0.76f
-                        ).coerceAtLeast(radius * 0.04f)
-                        paint.textSize = min(radius * 0.15f, maxLabelWidth * 0.18f)
-                            .coerceAtLeast(radius * 0.035f)
-                        val labelLayout = StaticLayout.Builder.obtain(
-                            option,
-                            0,
-                            option.length,
-                            paint,
-                            maxLabelWidth.toInt().coerceAtLeast(1)
-                        )
-                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                            .setIncludePad(false)
-                            .setMaxLines(2)
-                            .setEllipsize(TextUtils.TruncateAt.END)
-                            .build()
+                        wheelOptions.forEachIndexed { index, option ->
+                            val middleAngle = -90f + (index + 0.5f) * sweep
+                            val radians = Math.toRadians(middleAngle.toDouble())
+                            val labelX = centerX + kotlin.math.cos(radians).toFloat() * labelRadius
+                            val labelY = centerY + kotlin.math.sin(radians).toFloat() * labelRadius
+                            val sectorWidth = (
+                                2f * labelRadius * kotlin.math.tan(Math.PI / optionCount).toFloat() * 0.78f
+                            )
+                            val circleWidth = 2f * kotlin.math.sqrt(
+                                radius * radius - labelRadius * labelRadius
+                            )
+                            val maxLabelWidth = minOf(sectorWidth, circleWidth)
+                                .coerceAtLeast(radius * 0.25f)
+                            val labelLayout = StaticLayout.Builder.obtain(
+                                option,
+                                0,
+                                option.length,
+                                paint,
+                                maxLabelWidth.toInt().coerceAtLeast(1)
+                            )
+                                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                                .setIncludePad(false)
+                                .build()
 
-                        var textRotation = (middleAngle + 90f + 360f) % 360f
-                        val flipText = textRotation in 90f..270f
-                        if (flipText) textRotation = (textRotation + 180f) % 360f
-
-                        nativeCanvas.save()
-                        nativeCanvas.rotate(textRotation, labelX, labelY)
-                        nativeCanvas.translate(
-                            labelX - labelLayout.width / 2f,
-                            labelY - labelLayout.height / 2f
-                        )
-                        labelLayout.draw(nativeCanvas)
-                        nativeCanvas.restore()
+                            nativeCanvas.save()
+                            nativeCanvas.translate(
+                                labelX - labelLayout.width / 2f,
+                                labelY - labelLayout.height / 2f
+                            )
+                            labelLayout.draw(nativeCanvas)
+                            nativeCanvas.restore()
+                        }
                     }
                 }
                 Surface(
@@ -275,8 +267,39 @@ fun DecisionMakerScreen(
                 ) {}
                 Text("▼", modifier = Modifier.align(Alignment.TopCenter), color = MaterialTheme.colorScheme.primary)
             }
+            if (wheelOptions.size >= 5) {
+                val legendColors = listOf(
+                    Color(0xFF477BBA), Color(0xFF4F9B83), Color(0xFFE0A34B),
+                    Color(0xFF9A70B5), Color(0xFFCF6D69), Color(0xFF5596A5)
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.medium)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Wheel options", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    wheelOptions.forEachIndexed { index, option ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.size(12.dp)
+                                    .background(legendColors[index % legendColors.size], CircleShape)
+                            )
+                            Text(
+                                option,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            }
             Text(
-                "The wheel spins for about five seconds. Each slice shows an option; the pointer stops on the selected winner.",
+                "The wheel spins for about five seconds. For 2–4 options, labels appear inside the slices. For 5 or more options, the full option names are listed below the wheel.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
