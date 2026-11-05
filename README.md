@@ -3,6 +3,13 @@
 Native Android client for **MPA (Multi Portal Application)**, built with Kotlin,
 Jetpack Compose and Material 3.
 
+MPA is a free everyday-apps collection: a to-do list, an expense tracker with a monthly budget
+and CSV export, reminders, a unit and binary converter, a Decision Maker, and the games Sudoku,
+Chess, Ludo, Tic Tac Toe, Match Cards, Number Guess and Pong. Data is kept on the device, the
+apps work offline, and signing in with an MPA website account is optional. The same apps run in
+a browser at <https://mpa.pythonanywhere.com> (source: [ganjirk/MPA](https://github.com/ganjirk/MPA)).
+The wording used for the store listing is in [`docs/store-listing.md`](docs/store-listing.md).
+
 This repository is being rebuilt from an older collection of Python/Kivy and Django
 experiments. The rebuild follows a phased plan; each phase is a branch merged into
 `master` through a pull request.
