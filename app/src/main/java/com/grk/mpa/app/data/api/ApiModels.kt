@@ -79,8 +79,14 @@ data class UpdateProfileRequest(
     val githubID: String,
     val twitID: String,
     val instaID: String,
-    val fbID: String
+    val fbID: String,
+    /** Sent only when the person is changing their username; left out otherwise so it stays as it is. */
+    val username: String? = null
 )
+
+/** Response of `GET /api/v1/account/username-available/?u=name`. */
+@Serializable
+data class UsernameAvailability(val available: Boolean, val message: String = "")
 
 @Serializable
 data class AccountActionResponse(
