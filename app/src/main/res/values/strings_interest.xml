@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tool_interest">Interest</string>
+    <string name="interest_hint">Simple or compound interest. The rate can be a percentage, or \"Rs.1, Rs.2 interest\".</string>
+    <string name="interest_amount">Amount (₹)</string>
+    <string name="interest_rate">Interest rate</string>
+    <string name="interest_rate_unit_rs">₹ per ₹100 a month</string>
+    <string name="interest_rate_unit_month">Percent a month</string>
+    <string name="interest_rate_unit_year">Percent a year</string>
+    <string name="interest_rate_pick_hint">For \"Rs.2 interest\", pick ₹ per ₹100 a month.</string>
+    <string name="interest_rate_note_rs">₹%1$s interest = ₹%1$s a month on every ₹100 = %2$s a month = %3$s a year</string>
+    <string name="interest_rate_note_month">%1$s a month = %2$s a year</string>
+    <string name="interest_rate_note_year">%1$s a year = %2$s a month</string>
+    <string name="interest_time">Time</string>
+    <string name="interest_years">Years</string>
+    <string name="interest_months">Months</string>
+    <string name="interest_days">Days</string>
+    <string name="interest_type">Type of interest</string>
+    <string name="interest_simple">Simple</string>
+    <string name="interest_compound">Compound</string>
+    <string name="interest_added">Added to the amount</string>
+    <string name="interest_every_month">Every month</string>
+    <string name="interest_every_3_months">Every 3 months</string>
+    <string name="interest_every_6_months">Every 6 months</string>
+    <string name="interest_every_year">Every year</string>
+    <string name="interest_clear">Clear</string>
+    <string name="interest_prompt">Enter the amount, rate and time to see the interest.</string>
+    <string name="interest_result">Result</string>
+    <string name="interest_result_interest">Interest</string>
+    <string name="interest_result_total">Total to pay back</string>
+    <string name="interest_result_amount">Amount</string>
+    <string name="interest_rate_line">Rate: %1$s a month, %2$s a year.</string>
+    <string name="interest_rate_line_compound">Rate: %1$s a month, %2$s a year (%3$s a year once added to the amount).</string>
+    <string name="interest_year_by_year">Year by year</string>
+    <string name="interest_year_label">Year %1$d</string>
+    <string name="interest_year_label_part">Year %1$d (part)</string>
+    <string name="interest_note">A month counts as 1/12 of a year and a day as 1/365. This is a guide, not financial advice. Nothing you type here leaves your phone.</string>
+    <string name="interest_error_principal">Enter the amount (principal) as a number above 0.</string>
+    <string name="interest_error_principal_large">That amount is too large.</string>
+    <string name="interest_error_rate">Enter the interest rate as a number, 0 or more.</string>
+    <string name="interest_error_rate_high">That rate is too high to work with.</string>
+    <string name="interest_error_time_negative">Time cannot be negative.</string>
+    <string name="interest_error_time_zero">Enter a time period above 0.</string>
+    <string name="interest_error_time_long">Time cannot be more than 100 years.</string>
+</resources>

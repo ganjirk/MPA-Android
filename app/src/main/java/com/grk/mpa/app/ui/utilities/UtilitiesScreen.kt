@@ -45,7 +45,8 @@ import com.grk.mpa.app.core.UnitCategory
 
 private enum class UtilityTool(@StringRes val titleRes: Int) {
     UNITS(R.string.tool_unit_conversion),
-    DECISION_MAKER(R.string.tool_decision_maker)
+    DECISION_MAKER(R.string.tool_decision_maker),
+    INTEREST(R.string.tool_interest)
 }
 
 @Composable
@@ -73,12 +74,13 @@ fun UtilitiesScreen(modifier: Modifier = Modifier) {
         when (selected) {
             UtilityTool.UNITS -> UnitConverterScreen()
             UtilityTool.DECISION_MAKER -> DecisionMakerScreen()
+            UtilityTool.INTEREST -> InterestCalculatorScreen()
         }
     }
 }
 
 @Composable
-private fun ToolColumn(content: @Composable () -> Unit) {
+internal fun ToolColumn(content: @Composable () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
