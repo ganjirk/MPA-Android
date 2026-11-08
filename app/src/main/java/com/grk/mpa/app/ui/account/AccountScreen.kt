@@ -211,6 +211,7 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
     var showPasswordDialog by rememberSaveable { mutableStateOf(false) }
     var showDeactivateDialog by rememberSaveable { mutableStateOf(false) }
 
+    var username by remember(profile) { mutableStateOf(profile?.username ?: account.username) }
     var firstName by remember(profile) { mutableStateOf(profile?.firstName ?: account.firstName) }
     var lastName by remember(profile) { mutableStateOf(profile?.lastName ?: account.lastName) }
     var email by remember(profile) { mutableStateOf(profile?.email ?: account.email) }
@@ -277,12 +278,30 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             SectionTitle("Personal profile")
-            TextButton(onClick = { editing = !editing }, enabled = profile != null) {
+            TextButton(
+                onClick = {
+                    if (editing) viewModel.resetUsernameCheck()
+                    editing = !editing
+                },
+                enabled = profile != null
+            ) {
                 Text(if (editing) "Close editor" else "Edit")
             }
         }
 
         if (editing && profile != null) {
+            val check = viewModel.usernameCheck
+            ProfileField(
+                "Username", username,
+                { username = it; viewModel.checkUsername(it) },
+                supportingText = when (check) {
+                    UsernameCheck.Idle -> "Your sign-in name. Letters, numbers and @ . + - _ only."
+                    UsernameCheck.Checking -> "Checking…"
+                    is UsernameCheck.Available -> check.message
+                    is UsernameCheck.Unavailable -> check.message
+                },
+                isError = check is UsernameCheck.Unavailable
+            )
             ProfileField("First name", firstName, { firstName = it })
             ProfileField("Last name", lastName, { lastName = it })
             ProfileField("Email", email, { email = it }, keyboardType = KeyboardType.Email)
@@ -306,11 +325,13 @@ private fun SignedInContent(account: Account, viewModel: AccountViewModel, modif
                     viewModel.saveProfile(
                         UpdateProfileRequest(
                             firstName, lastName, email, phone, mobile, address, designation,
-                            sex.trim().uppercase(), emailReplies, website, github, twitter, instagram, facebook
+                            sex.trim().uppercase(), emailReplies, website, github, twitter, instagram, facebook,
+                            username = username.trim().takeIf { it != profile.username }
                         )
                     )
                 },
-                enabled = !viewModel.profileSaving && firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank(),
+                enabled = !viewModel.profileSaving && firstName.isNotBlank() && lastName.isNotBlank() &&
+                    email.isNotBlank() && viewModel.usernameCheck !is UsernameCheck.Unavailable,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (viewModel.profileSaving) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -399,7 +420,9 @@ private fun ProfileField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    supportingText: String? = null,
+    isError: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -407,6 +430,8 @@ private fun ProfileField(
         modifier = Modifier.fillMaxWidth(),
         label = { Text(label) },
         singleLine = true,
+        isError = isError,
+        supportingText = supportingText?.let { { Text(it) } },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
     )
 }

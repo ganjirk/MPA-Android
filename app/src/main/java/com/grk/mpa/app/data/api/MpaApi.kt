@@ -7,6 +7,7 @@ interface MpaApi {
     suspend fun account(accessToken: String): ApiResult<Account>
     suspend fun profile(accessToken: String): ApiResult<RemoteProfile> = ApiResult.HttpError(501)
     suspend fun updateProfile(accessToken: String, request: UpdateProfileRequest): ApiResult<RemoteProfile> = ApiResult.HttpError(501)
+    suspend fun usernameAvailable(accessToken: String, username: String): ApiResult<UsernameAvailability> = ApiResult.HttpError(501)
     suspend fun uploadProfilePicture(accessToken: String, bytes: ByteArray, mimeType: String, fileName: String): ApiResult<RemoteProfile> = ApiResult.HttpError(501)
     suspend fun removeProfilePicture(accessToken: String): ApiResult<RemoteProfile> = ApiResult.HttpError(501)
     suspend fun resendVerification(accessToken: String): ApiResult<AccountActionResponse> = ApiResult.HttpError(501)
