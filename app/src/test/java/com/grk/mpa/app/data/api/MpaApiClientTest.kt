@@ -377,4 +377,31 @@ class MpaApiClientTest {
         assertEquals("https://mpa.pythonanywhere.com/signup/", ApiConfig.website("/signup/"))
         MpaApiClient()
     }
+
+    @Test
+    fun usernameAvailabilityEncodesTheNameAndUsesBearerAuth() = runBlocking {
+        handler = { it.reply(200, """{"available":false,"message":"That username is already taken."}""") }
+        val result = client().usernameAvailable("name-token", "a b&c")
+        assertEquals(
+            ApiResult.Success(UsernameAvailability(false, "That username is already taken.")),
+            result
+        )
+        assertEquals("GET", lastMethod)
+        assertEquals("/api/v1/account/username-available/", lastPath)
+        assertEquals("u=a+b%26c", lastQuery)
+        assertEquals("Bearer name-token", lastAuth)
+    }
+
+    @Test
+    fun profileUpdateSendsTheUsernameOnlyWhenItChanges() = runBlocking {
+        val profileJson = """{"id":7,"username":"new_name","first_name":"A","last_name":"B","email":"a@example.com"}"""
+        handler = { it.reply(200, profileJson) }
+        val base = UpdateProfileRequest("A", "B", "a@example.com", "", "", "", "", "", true, "", "", "", "", "")
+        client().updateProfile("tok", base)
+        assertTrue(!lastBody!!.contains("username"))
+        val result = client().updateProfile("tok", base.copy(username = "new_name"))
+        assertTrue(lastBody!!.contains("\"username\":\"new_name\""))
+        assertEquals("new_name", (result as ApiResult.Success).value.username)
+    }
 }
+

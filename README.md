@@ -39,6 +39,8 @@ experiments. The rebuild follows a phased plan; each phase is a branch merged in
 | 21 | `phase21/your-week` | "Your week" recap and a daily mood tap, matching the website: tasks, spending, games, active days, highlights and the monthly budget, built from data on the device | In review |
 | 22 | `phase22/unit-colors` | Unit converter: a light colour and emoji badge per category, with the field being typed in highlighted; light and dark variants | In review |
 | 23 | `feature/unified-unit-binary-converter` | Combine Units and Binary under one Unit Conversion utility; include Binary Conversion below the unit categories | In review |
+| 24 | `phase24/interest-calculator` | Interest calculator in Utilities, matching the website: simple or compound, Rs.1 / Rs.2 interest or a percentage, year-by-year list | Merged |
+| 25 | `phase25/username-change` | Change your username on the profile editor, with a live "is it free?" check from the website API | In review |
 | 16 | `phase16/sudoku` | Sudoku on the Games tab, matching the website: three difficulties, notes, hints, undo, check, timer and best times, saved on the device | In review |
 
 Games (Number Guess with levels, Pong, Tic Tac Toe, Ludo, Sudoku, Chess, Match Cards), Utilities (Unit Conversion with binary conversion, plus Decision Maker), Productivity (local

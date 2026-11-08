@@ -13,7 +13,11 @@ import com.grk.mpa.app.data.api.PasswordChangeRequest
 import com.grk.mpa.app.data.auth.AuthRepository
 import com.grk.mpa.app.data.auth.SessionResult
 import com.grk.mpa.app.data.auth.SignInResult
+import com.grk.mpa.app.core.UsernameRules
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 sealed interface AccountState {
@@ -26,6 +30,14 @@ sealed interface AccountState {
     data object Offline : AccountState
 }
 
+/** The live answer to "can I use this username?" while someone types a new one. */
+sealed interface UsernameCheck {
+    data object Idle : UsernameCheck
+    data object Checking : UsernameCheck
+    data class Available(val message: String) : UsernameCheck
+    data class Unavailable(val message: String) : UsernameCheck
+}
+
 enum class LoginError { INVALID_CREDENTIALS, RATE_LIMITED, NETWORK, OTHER }
 
 /**
@@ -33,7 +45,8 @@ enum class LoginError { INVALID_CREDENTIALS, RATE_LIMITED, NETWORK, OTHER }
  */
 class AccountViewModel(
     private val repository: AuthRepository,
-    private val coroutineScope: CoroutineScope? = null
+    private val coroutineScope: CoroutineScope? = null,
+    private val usernameDebounceMillis: Long = 350
 ) : ViewModel() {
     private val scope: CoroutineScope get() = coroutineScope ?: viewModelScope
 
@@ -124,6 +137,55 @@ class AccountViewModel(
         }
     }
 
+    var usernameCheck by mutableStateOf<UsernameCheck>(UsernameCheck.Idle)
+        private set
+    private var usernameJob: Job? = null
+
+    private fun formatMessage(problem: UsernameRules.Problem): String = when (problem) {
+        UsernameRules.Problem.TOO_SHORT -> "Username must be at least ${UsernameRules.MIN_LENGTH} characters."
+        UsernameRules.Problem.TOO_LONG -> "Username must be ${UsernameRules.MAX_LENGTH} characters or fewer."
+        UsernameRules.Problem.BAD_CHARACTERS -> "Use only letters, numbers and @ . + - _ characters."
+    }
+
+    /**
+     * Called as the username box changes. Format problems show at once; otherwise, after a short pause
+     * in typing, the server says whether the name is free. The save checks again, so this is only advice.
+     */
+    fun checkUsername(text: String) {
+        usernameJob?.cancel()
+        val name = text.trim()
+        if (name == profile?.username) {
+            usernameCheck = UsernameCheck.Idle
+            return
+        }
+        UsernameRules.problem(name)?.let {
+            usernameCheck = UsernameCheck.Unavailable(formatMessage(it))
+            return
+        }
+        usernameCheck = UsernameCheck.Checking
+        usernameJob = scope.launch {
+            delay(usernameDebounceMillis)
+            val result = repository.usernameAvailable(name)
+            if (!isActive) return@launch
+            usernameCheck = when {
+                result is ApiResult.Success && result.value.available -> UsernameCheck.Available(result.value.message)
+                result is ApiResult.Success -> UsernameCheck.Unavailable(result.value.message)
+                else -> UsernameCheck.Idle
+            }
+        }
+    }
+
+    fun resetUsernameCheck() {
+        usernameJob?.cancel()
+        usernameCheck = UsernameCheck.Idle
+    }
+
+    /** After a refused save, ask the server why, so the person sees "already taken" and not a vague error. */
+    private suspend fun usernameRefusalMessage(name: String): String? {
+        val result = repository.usernameAvailable(name)
+        return if (result is ApiResult.Success && !result.value.available) result.value.message else null
+    }
+
     fun saveProfile(request: UpdateProfileRequest) {
         if (profileSaving) return
         profileSaving = true
@@ -133,6 +195,7 @@ class AccountViewModel(
             when (val result = repository.updateProfile(request)) {
                 is ApiResult.Success -> {
                     profile = result.value
+                    usernameCheck = UsernameCheck.Idle
                     actionMessage = result.value.message ?: "Profile saved."
                     state = AccountState.SignedIn(
                         Account(
@@ -147,7 +210,9 @@ class AccountViewModel(
                 }
                 ApiResult.Unauthorized -> actionError = "Your session expired. Please sign in again."
                 ApiResult.NetworkError -> actionError = "Network unavailable. Your changes were not saved."
-                is ApiResult.HttpError -> actionError = "Profile could not be saved. Check the fields and try again."
+                is ApiResult.HttpError -> actionError =
+                    request.username?.takeIf { result.code == 400 }?.let { usernameRefusalMessage(it) }
+                        ?: "Profile could not be saved. Check the fields and try again."
                 else -> actionError = "Profile could not be saved. Please try again."
             }
             profileSaving = false

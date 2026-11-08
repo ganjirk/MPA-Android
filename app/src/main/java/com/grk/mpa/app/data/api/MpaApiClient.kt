@@ -2,6 +2,7 @@ package com.grk.mpa.app.data.api
 
 import java.io.IOException
 import java.net.URI
+import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -64,6 +65,12 @@ class MpaApiClient(
             body = json.encodeToString(request),
             bearer = accessToken
         ) { json.decodeFromString<RemoteProfile>(it) }
+
+    override suspend fun usernameAvailable(accessToken: String, username: String): ApiResult<UsernameAvailability> =
+        call(
+            "api/v1/account/username-available/?u=" + URLEncoder.encode(username, "UTF-8"),
+            bearer = accessToken
+        ) { json.decodeFromString<UsernameAvailability>(it) }
 
     override suspend fun uploadProfilePicture(
         accessToken: String,

@@ -5,6 +5,7 @@ import com.grk.mpa.app.data.api.ApiResult
 import com.grk.mpa.app.data.api.MpaApi
 import com.grk.mpa.app.data.api.RemoteProfile
 import com.grk.mpa.app.data.api.UpdateProfileRequest
+import com.grk.mpa.app.data.api.UsernameAvailability
 import com.grk.mpa.app.data.api.AccountActionResponse
 import com.grk.mpa.app.data.api.PasswordChangeRequest
 
@@ -66,6 +67,9 @@ class AuthRepository(private val api: MpaApi, private val storage: AuthStorage) 
 
     suspend fun updateProfile(request: UpdateProfileRequest): ApiResult<RemoteProfile> =
         withSession { api.updateProfile(it, request) }
+
+    suspend fun usernameAvailable(username: String): ApiResult<UsernameAvailability> =
+        withSession { api.usernameAvailable(it, username) }
 
     suspend fun uploadProfilePicture(bytes: ByteArray, mimeType: String, fileName: String): ApiResult<RemoteProfile> =
         withSession { api.uploadProfilePicture(it, bytes, mimeType, fileName) }
