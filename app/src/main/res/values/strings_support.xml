@@ -8,7 +8,7 @@
 
     <string name="help_about_title">What is in the app</string>
     <string name="help_about_games">Games: Number Guess, Pong, Tic Tac Toe, Ludo, Sudoku and Chess. Your progress is kept on this device.</string>
-    <string name="help_about_utilities">Utilities: a unit converter with eight categories and a binary converter.</string>
+    <string name="help_about_utilities">Utilities: a unit converter with eight categories and a binary converter, a decision maker and an interest calculator.</string>
     <string name="help_about_productivity">Productivity: tasks, an expense tracker with a monthly budget and CSV export, and reminders.</string>
     <string name="help_about_account">Account: sign in with your MPA website account to keep tasks and expenses in step with the website.</string>
 
